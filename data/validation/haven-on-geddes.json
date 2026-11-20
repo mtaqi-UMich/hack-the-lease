@@ -1,0 +1,49 @@
+{
+  "retrieved": "2026-11-20",
+  "note": "Real public listing data from rendered pages. Unknown = null. 'inferred' marks my reading. Only Haven on Geddes is covered; Hackberry's site lists no other Michigan property.",
+  "property": {
+    "name": "Haven on Geddes (formerly Geddes Hill Apartments; also 'MIGDH Haven on Geddes' on aggregators)",
+    "operator": "Hackberry Lane (formerly Havenly Ventures)",
+    "address": "1700 Geddes Ave, Ann Arbor, MI 48104",
+    "neighborhood": "Oxbridge",
+    "units": 62,
+    "beds_per_press_release": 123,
+    "year_built": 1967,
+    "renovated": "2026 (Uhomes)",
+    "lease_term_listed": "2027-28: 2027-08-26 to 2028-07-27 (about 11 months)",
+    "lease_types": ["Individual leases", "By-the-bed leasing", "Group of 3 to 6, double occupancy options (official site)"],
+    "utilities": "included per official site; $40/mo flat resident utility fee per Amber and ForRent",
+    "distance_to_umich": "1.1 mi / 3 min drive (ForRent); 0.59 mi (Amber)"
+  },
+  "floor_plans_official_havenongeddes_com": [
+    {"plan": "Bi-Level w/ Flex Bedroom", "beds": 3, "baths": 1.5, "sqft": 952, "option": "Private", "rent_usd_per_month": 1100, "deposit": "N/A shown"},
+    {"plan": "Ranch", "beds": 3, "baths": 1, "sqft": 968, "option": "Private", "rent_usd_per_month": 1335, "deposit": "N/A shown"}
+  ],
+  "cross_check": [
+    {"plan": "Ranch 3bd/1ba 968 sqft", "official": 1335, "amber": 1335, "uhomes": null, "agree": true},
+    {"plan": "Bi-Level 3bd/1.5ba", "official": 1100, "amber": "not listed as such", "uhomes": "from 1100", "agree": true},
+    {"plan": "3bd/2ba ranch", "official": "not listed", "amber": "1465, sold out", "uhomes": null, "agree": "n/a - not on official site"},
+    {"plan": "4bd/1.5ba bi-level 904 sqft", "official": "not listed", "amber": "999, sold out", "uhomes": null, "agree": "n/a - not on official site"}
+  ],
+  "rent_basis": "Per private bedroom per month (official shows Option: Private; Amber labels per room). Per-unit total = per-bed x 3 (inferred).",
+  "fees": {
+    "application_fee_per_applicant_usd": 35,
+    "security_deposit_refundable_usd": 500,
+    "utility_flat_fee_per_month_usd": 40,
+    "pet_one_time_usd": 500,
+    "pet_rent_per_month_usd": 25,
+    "pet_rules": "approved units only, 25 lb or less (Amber)",
+    "fee_sources": "Amber and ForRent University; not shown on official floor plan page"
+  },
+  "amenities": ["Fitness center", "Clubhouse/game room", "Lounge", "Movie theatre", "Study lounge", "Key fob / controlled access", "CCTV and fire system (Uhomes)", "Package room/Amazon Locker", "Laundry (in-unit or shared); washer/dryer in ranch units", "Covered bike storage", "Surface parking lot", "Wi-Fi", "Elevator (Uhomes)", "24/7 maintenance", "Dishwasher", "Furnished vs unfurnished: sources disagree"],
+  "scores": {"walk": 80, "transit": 60, "drive": 70, "bike": 70, "soundscore": 69},
+  "sources_and_status": [
+    {"site": "havenongeddes.com (Hackberry official)", "url": "https://www.havenongeddes.com/ann-arbor/haven-on-geddes/student/", "result": "worked in browser; plan names, sqft, rent, lease term. Room dimensions are inside floor plan images only."},
+    {"site": "amberstudent.com", "url": "https://amberstudent.com/places/haven-on-geddes-ann-arbor-2606035956395", "result": "worked; floor plans, per-room rents, dates, fees, pet rules"},
+    {"site": "en.uhomes.com", "url": "https://en.uhomes.com/us/ann-arbor/detail-apartments-1852458", "result": "worked partly; from US$1,100/month, amenities, plan names; fee table not rendered in text"},
+    {"site": "apartments.com", "result": "browser 403, not bypassed"},
+    {"site": "hotpads.com", "result": "bot check, not bypassed"},
+    {"site": "apartmentlist.com", "result": "Haven page now 404"},
+    {"site": "offcampushousing.umich.edu", "result": "does not list Haven on Geddes"}
+  ]
+}
