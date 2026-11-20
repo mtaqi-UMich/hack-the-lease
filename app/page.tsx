@@ -14,7 +14,8 @@ export default function Home() {
         </div>
         <div className="mt-6 flex flex-wrap justify-center gap-2 text-[13px]" style={{ color: '#666666' }}>
           <Link href="/landlord" className="underline">I’m a landlord</Link><span>·</span>
-          <Link href="/evidence" className="underline">How we know it works</Link>
+          <Link href="/evidence" className="underline">How we know it works</Link><span>·</span>
+          <Link href="/analysis" className="underline">The math</Link>
         </div>
       </section>
     </Page>

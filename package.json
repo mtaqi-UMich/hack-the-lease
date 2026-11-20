@@ -11,7 +11,8 @@
     "simulate": "tsx scripts/simulate.ts",
     "gen:data": "tsx scripts/gen-listings.ts",
     "prompt": "node scripts/build-prompt.mjs",
-    "prompt:watch": "node --watch-path=context scripts/build-prompt.mjs"
+    "prompt:watch": "node --watch-path=context scripts/build-prompt.mjs",
+    "analysis": "tsx scripts/analysis.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.11.0",

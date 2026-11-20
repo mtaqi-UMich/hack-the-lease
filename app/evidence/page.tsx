@@ -29,6 +29,7 @@ export default function Evidence() {
     <Page>
       <div className="flex flex-col gap-1.5">
         <h1 className="m-0 text-[34px] font-bold tracking-[-0.03em]">How we know it works</h1>
+        <Link href="/analysis" className="text-[15px] font-semibold" style={{ color: C.indigo }}>Full statistical analysis: why 5 taps are enough →</Link>
         <p className="m-0 max-w-[720px] text-[17px]" style={{ color: C.muted }}>{r.n.toLocaleString('en-US')} simulated students, each with a full hidden profile, answer our ≤ 5 adaptive screens. We check whether the place their <i>full</i> profile says is best lands in our top 3. All students and listings are Example (synthetic) data.</p>
       </div>
 
@@ -97,7 +98,7 @@ export default function Evidence() {
           <li>It proves the questions find what <b>our model</b> says is best, with ≤ 5 taps, and that the meter is honest about it.</li>
           <li>It doesn’t prove the model matches real students — the priors are invented. Next: a ~100-student UMich survey and a 15-minute hallway test with 5–8 students.</li>
           <li>Commute times use a synthetic timetable stand-in (Estimated), not TheRide’s GTFS feed yet.</li>
-          <li>Plus {213} automated test cases: scenario rules, compare and bench, Bring any listing, landlord compliance, robustness, fairness and speed.</li>
+          <li>Plus 230 automated test cases: scenario rules, compare and bench, Bring any listing, landlord compliance, robustness, fairness, speed and the statistics library itself.</li>
         </ul>
         <span className="text-[12px]" style={{ color: C.muted }}>Generated {new Date(r.generated_at).toLocaleString('en-US')} · {r.listings} Example listings · {r.pool} particles · τ = {r.tau} · reproduce with <code>npm run simulate</code>. Full report: reports/validation.md</span>
       </section>

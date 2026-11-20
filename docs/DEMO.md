@@ -54,7 +54,7 @@ Results → **Add a listing from elsewhere** → **Try the Example listing**.
 - **H1** 98.1% of 1,000 simulated students get their full-information best in our top 3 (95% CI 97.1–98.8%) in **3.3 taps** on average.
 - **H3** adaptive order 98.1% vs a fixed order 74.5% at the same number of taps — McNemar p ≈ 10⁻⁵⁰.
 - **H4** confidence meter off by only 1.4 points.
-- 213 automated tests. Honest limit: these prove the algorithm finds what our model says is best; the survey + hallway test is next.
+- 230 automated tests. Honest limit: these prove the algorithm finds what our model says is best; the survey + hallway test is next.
 
 ---
 

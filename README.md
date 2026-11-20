@@ -2,6 +2,48 @@
 
 Our hackathon project for Hackberry Lane: a tool that helps students pick housing based on how they actually live.
 
+**Live app:** https://hack-the-lease-kappa.vercel.app — redeploys automatically on every push to `main`.
+All listings, landlords and students in the app are synthetic (**Example** data).
+
+## Start here (new laptop, ~5 minutes)
+
+```bash
+git clone https://github.com/mtaqi-UMich/hack-the-lease.git
+cd hack-the-lease
+npm install
+npm run dev          # http://localhost:3000
+npm test             # 230 tests, ~20 s
+```
+
+Windows PowerShell blocks `npm`/`npx` scripts on some laptops ("running scripts is disabled"). Use `npm.cmd` / `npx.cmd` instead — nothing else changes. If `git clone` fails with "Filename too long": `git config --global core.longpaths true`.
+
+Optional: create `.env.local` with `ANTHROPIC_API_KEY=...` to let "Bring any listing" read pasted listings with Claude. Without it the rule-based reader and the cached example still work. Never commit `.env*`.
+
+Then open Claude Code in this folder — it reads `CLAUDE.md` (all of `context/`) automatically.
+
+| Command | What it does |
+|---|---|
+| `npm run dev` | local app |
+| `npm test` | all Vitest suites (engine parity, scenarios, compare, bring-listing, landlord, robustness, fairness, speed, stats) |
+| `npm run simulate` | 1,000-student validation → `reports/validation.{md,json}` (≈ 4 min) → shown on `/evidence` |
+| `npm run analysis` | deep statistical analysis → `reports/analysis.json`, `docs/ANALYSIS.md` (≈ 8 min) → shown on `/analysis` |
+| `npm run gen:data` | regenerate the 120 Example listings (seed 42) |
+| `npm run prompt` | rebuild `CLAUDE.md` / `prompt/*` from `context/` |
+
+### Where things are
+| Path | What |
+|---|---|
+| `app/` | pages: `/` `/onboarding` `/id` `/results` `/compare` `/map` `/bring` `/apply` `/landlord` `/evidence` `/analysis`, and `app/api/*` |
+| `lib/engine/` | the adaptive Bayesian engine (TypeScript port of `prototype/engine.js`) |
+| `lib/session.ts` `lib/compare.ts` `lib/cost.ts` | student profile ↔ engine, compare cards and bench, true monthly cost |
+| `lib/extract.ts` `lib/compliance.ts` `lib/apply.ts` | Bring any listing, Ann Arbor rules, pre-qualify and leads |
+| `data/` | Example listings, landlords, commute table, cached extraction |
+| `docs/` | `PRD.md`, `DEMO.md` (5-min script), `PITCH.md` (deck outline), `ANALYSIS.md` (stats), `RESEARCH.md` (renter pain Pareto) |
+| `design/` | approved screen designs (visual spec) |
+
+### Deploying
+Push to `main` → Vercel builds and publishes within ~2 minutes (project `hack-the-lease` on Vercel). Pull requests get preview URLs. Check a build: `npx vercel ls` (after `npx vercel login`).
+
 ## How the shared "brain" works
 
 ```

@@ -1,0 +1,709 @@
+{
+  "generated_at": "2026-11-20T11:34:36.063Z",
+  "n": 1000,
+  "particles": 2500,
+  "tau": 0.95,
+  "cap": 5,
+  "listings": 120,
+  "example_data": true,
+  "prior": {
+    "base": {
+      "Central": 0.5,
+      "North": 0.25,
+      "Medical": 0.1,
+      "Split": 0.15
+    },
+    "modeGivenBase": {
+      "Central": {
+        "walk": 0.6,
+        "bus": 0.15,
+        "bike": 0.15,
+        "drive": 0.1
+      },
+      "North": {
+        "walk": 0.2,
+        "bus": 0.55,
+        "bike": 0.1,
+        "drive": 0.15
+      },
+      "Medical": {
+        "walk": 0.35,
+        "bus": 0.3,
+        "bike": 0.1,
+        "drive": 0.25
+      },
+      "Split": {
+        "walk": 0.25,
+        "bus": 0.5,
+        "bike": 0.15,
+        "drive": 0.1
+      }
+    },
+    "group": {
+      "1": 0.2,
+      "2": 0.25,
+      "3": 0.2,
+      "4": 0.25,
+      "5": 0.1
+    },
+    "budget": {
+      "mean": 1150,
+      "sd": 260,
+      "min": 650,
+      "max": 2000
+    },
+    "alpha": {
+      "median": 25,
+      "logSd": 0.6,
+      "min": 5,
+      "max": 120
+    },
+    "parkingGivenMode": {
+      "drive": 0.95,
+      "walk": 0.03,
+      "bus": 0.05,
+      "bike": 0.05
+    },
+    "laundry": 0.5,
+    "pet": 0.12,
+    "ac": 0.4,
+    "quiet": 0.4,
+    "leaseFlex": 0.15
+  },
+  "H1": {
+    "p": 0.981,
+    "lo": 0.9705155439877599,
+    "hi": 0.9878031142912823,
+    "pOneSidedVs95": 2.879691995620475e-7
+  },
+  "mcnemar": {
+    "b": 242,
+    "c": 6,
+    "chi2": 222.68145161290323,
+    "p": 2.352374039014446e-50,
+    "exact": false
+  },
+  "diffBootstrap": {
+    "estimate": 0.236,
+    "lo": 0.209,
+    "hi": 0.262
+  },
+  "avgScreens": 3.326,
+  "top1": 0.688,
+  "tauSweep": [
+    {
+      "tau": 0.8,
+      "avgScreens": 2.665,
+      "top3": {
+        "p": 0.908,
+        "lo": 0.8884912644771267,
+        "hi": 0.9243861005495869
+      },
+      "top1": 0.572
+    },
+    {
+      "tau": 0.85,
+      "avgScreens": 2.975,
+      "top3": {
+        "p": 0.953,
+        "lo": 0.9380600617856686,
+        "hi": 0.9644728949719324
+      },
+      "top1": 0.632
+    },
+    {
+      "tau": 0.9,
+      "avgScreens": 3.102,
+      "top3": {
+        "p": 0.962,
+        "lo": 0.9482730795448419,
+        "hi": 0.9721909955589366
+      },
+      "top1": 0.657
+    },
+    {
+      "tau": 0.95,
+      "avgScreens": 3.326,
+      "top3": {
+        "p": 0.981,
+        "lo": 0.9705155439877599,
+        "hi": 0.9878031142912823
+      },
+      "top1": 0.688
+    },
+    {
+      "tau": 0.97,
+      "avgScreens": 3.477,
+      "top3": {
+        "p": 0.989,
+        "lo": 0.9804106042129211,
+        "hi": 0.9938468259293899
+      },
+      "top1": 0.706
+    },
+    {
+      "tau": 0.99,
+      "avgScreens": 3.71,
+      "top3": {
+        "p": 0.994,
+        "lo": 0.9869718316826028,
+        "hi": 0.9972473308742513
+      },
+      "top1": 0.725
+    }
+  ],
+  "capSweep": [
+    {
+      "cap": 1,
+      "avgScreens": 1,
+      "top3": {
+        "p": 0.431,
+        "lo": 0.400628443530879,
+        "hi": 0.4618996491484266
+      },
+      "top1": 0.17
+    },
+    {
+      "cap": 2,
+      "avgScreens": 2,
+      "top3": {
+        "p": 0.781,
+        "lo": 0.7543184068874955,
+        "hi": 0.8055309548098244
+      },
+      "top1": 0.442
+    },
+    {
+      "cap": 3,
+      "avgScreens": 2.802,
+      "top3": {
+        "p": 0.9,
+        "lo": 0.8798480366332873,
+        "hi": 0.9170905565301575
+      },
+      "top1": 0.582
+    },
+    {
+      "cap": 4,
+      "avgScreens": 3.242,
+      "top3": {
+        "p": 0.975,
+        "lo": 0.9633547106237268,
+        "hi": 0.9830098687578637
+      },
+      "top1": 0.678
+    },
+    {
+      "cap": 5,
+      "avgScreens": 3.326,
+      "top3": {
+        "p": 0.981,
+        "lo": 0.9705155439877599,
+        "hi": 0.9878031142912823
+      },
+      "top1": 0.688
+    },
+    {
+      "cap": 6,
+      "avgScreens": 3.345,
+      "top3": {
+        "p": 0.982,
+        "lo": 0.9717267447311034,
+        "hi": 0.9885842600308473
+      },
+      "top1": 0.688
+    },
+    {
+      "cap": 7,
+      "avgScreens": 3.347,
+      "top3": {
+        "p": 0.982,
+        "lo": 0.9717267447311034,
+        "hi": 0.9885842600308473
+      },
+      "top1": 0.689
+    },
+    {
+      "cap": 8,
+      "avgScreens": 3.349,
+      "top3": {
+        "p": 0.982,
+        "lo": 0.9717267447311034,
+        "hi": 0.9885842600308473
+      },
+      "top1": 0.69
+    }
+  ],
+  "trajectory": [
+    {
+      "k": 0,
+      "meanEntropyBits": 5.896372654244008,
+      "meanConf": 0.12919999999999815,
+      "adaptiveTop3": 0.13,
+      "fixedTop3": 0.13
+    },
+    {
+      "k": 1,
+      "meanEntropyBits": 3.644557783167412,
+      "meanConf": 0.4496408000000017,
+      "adaptiveTop3": 0.431,
+      "fixedTop3": 0.431
+    },
+    {
+      "k": 2,
+      "meanEntropyBits": 2.1656164016759685,
+      "meanConf": 0.7777785037738252,
+      "adaptiveTop3": 0.781,
+      "fixedTop3": 0.559
+    },
+    {
+      "k": 3,
+      "meanEntropyBits": 1.3985071962457973,
+      "meanConf": 0.9128366130777337,
+      "adaptiveTop3": 0.902,
+      "fixedTop3": 0.712
+    },
+    {
+      "k": 4,
+      "meanEntropyBits": 0.7918983851159213,
+      "meanConf": 0.9861031580203062,
+      "adaptiveTop3": 0.985,
+      "fixedTop3": 0.8
+    },
+    {
+      "k": 5,
+      "meanEntropyBits": 0.5366806490951269,
+      "meanConf": 0.9960783728530476,
+      "adaptiveTop3": 0.992,
+      "fixedTop3": 0.993
+    }
+  ],
+  "order": [
+    {
+      "screen": 1,
+      "asked": 1000,
+      "share": {
+        "group": 1,
+        "deal": 0,
+        "budget": 0,
+        "base": 0,
+        "mode": 0,
+        "card": 0
+      }
+    },
+    {
+      "screen": 2,
+      "asked": 1000,
+      "share": {
+        "group": 0,
+        "deal": 1,
+        "budget": 0,
+        "base": 0,
+        "mode": 0,
+        "card": 0
+      }
+    },
+    {
+      "screen": 3,
+      "asked": 988,
+      "share": {
+        "group": 0,
+        "deal": 0.0010121457489878543,
+        "budget": 0.5647773279352226,
+        "base": 0.409919028340081,
+        "mode": 0.024291497975708502,
+        "card": 0
+      }
+    },
+    {
+      "screen": 4,
+      "asked": 937,
+      "share": {
+        "group": 0,
+        "deal": 0.004268943436499467,
+        "budget": 0.4055496264674493,
+        "base": 0.4599786552828175,
+        "mode": 0.09071504802561366,
+        "card": 0.03948772678762007
+      }
+    },
+    {
+      "screen": 5,
+      "asked": 781,
+      "share": {
+        "group": 0,
+        "deal": 0.011523687580025609,
+        "budget": 0.0076824583866837385,
+        "base": 0.03713188220230474,
+        "mode": 0.5160051216389244,
+        "card": 0.42765685019206146
+      }
+    }
+  ],
+  "distinctOrders": 37,
+  "initialEntropy": 5.896372654244008,
+  "gain": {
+    "pairs": 4706,
+    "meanExpected": 1.1267890176722004,
+    "meanRealized": 1.1389060784421627,
+    "diffTest": {
+      "n": 4706,
+      "mean": 0.01211706076995588,
+      "sd": 0.529900379742984,
+      "t": 1.5686607016311556,
+      "df": 4705,
+      "p": 0.11679426592721143
+    },
+    "correlation": 0.8107291319410199,
+    "byQuestion": [
+      {
+        "q": "group",
+        "n": 1000,
+        "expected": 2.2358433282501995,
+        "realized": 2.2518148710765304
+      },
+      {
+        "q": "deal",
+        "n": 1014,
+        "expected": 1.5202931036821672,
+        "realized": 1.4635190359673442
+      },
+      {
+        "q": "budget",
+        "n": 944,
+        "expected": 0.6806492559357776,
+        "realized": 0.7835303137657873
+      },
+      {
+        "q": "base",
+        "n": 865,
+        "expected": 0.7076476244859505,
+        "realized": 0.6987780390012298
+      },
+      {
+        "q": "mode",
+        "n": 512,
+        "expected": 0.3238477708575608,
+        "realized": 0.3289033510363204
+      },
+      {
+        "q": "card",
+        "n": 371,
+        "expected": 0.2824539900775364,
+        "realized": 0.30020133676511385
+      }
+    ],
+    "minGainShown": 0.031544977928640444
+  },
+  "calibration": {
+    "ece": 0.014178723202890771,
+    "bins": [
+      {
+        "lo": 0,
+        "hi": 0.2,
+        "n": 1000,
+        "meanConf": 0.12919999999999815,
+        "hitRate": 0.13
+      },
+      {
+        "lo": 0.2,
+        "hi": 0.4,
+        "n": 463,
+        "meanConf": 0.37555853131749306,
+        "hitRate": 0.3693304535637149
+      },
+      {
+        "lo": 0.4,
+        "hi": 0.6,
+        "n": 510,
+        "meanConf": 0.4674301295969898,
+        "hitRate": 0.5019607843137255
+      },
+      {
+        "lo": 0.6,
+        "hi": 0.8,
+        "n": 736,
+        "meanConf": 0.6982088695798462,
+        "hitRate": 0.6671195652173914
+      },
+      {
+        "lo": 0.8,
+        "hi": 0.9,
+        "n": 409,
+        "meanConf": 0.8422640371167313,
+        "hitRate": 0.8288508557457213
+      },
+      {
+        "lo": 0.9,
+        "hi": 0.95,
+        "n": 227,
+        "meanConf": 0.9279666111600994,
+        "hitRate": 0.9074889867841409
+      },
+      {
+        "lo": 0.95,
+        "hi": 1,
+        "n": 981,
+        "meanConf": 0.988814253563014,
+        "hitRate": 0.981651376146789
+      }
+    ],
+    "hosmerLemeshow": {
+      "chi2": 353.7538515482412,
+      "df": 8,
+      "p": 0
+    },
+    "brier": 0.13883075849446608,
+    "brierBaseline": 0.24174699571598326,
+    "brierSkill": 0.4257187847017898,
+    "final": {
+      "bins": [
+        {
+          "lo": 0,
+          "hi": 0.2,
+          "n": 0,
+          "meanConf": null,
+          "hitRate": null
+        },
+        {
+          "lo": 0.2,
+          "hi": 0.4,
+          "n": 0,
+          "meanConf": null,
+          "hitRate": null
+        },
+        {
+          "lo": 0.4,
+          "hi": 0.6,
+          "n": 0,
+          "meanConf": null,
+          "hitRate": null
+        },
+        {
+          "lo": 0.6,
+          "hi": 0.8,
+          "n": 0,
+          "meanConf": null,
+          "hitRate": null
+        },
+        {
+          "lo": 0.8,
+          "hi": 0.9,
+          "n": 8,
+          "meanConf": 0.8767009836140229,
+          "hitRate": 0.875
+        },
+        {
+          "lo": 0.9,
+          "hi": 0.95,
+          "n": 11,
+          "meanConf": 0.9199809791741808,
+          "hitRate": 1
+        },
+        {
+          "lo": 0.95,
+          "hi": 1,
+          "n": 981,
+          "meanConf": 0.988814253563014,
+          "hitRate": 0.981651376146789
+        }
+      ],
+      "ece": 0.00792059984331293
+    }
+  },
+  "alpha": {
+    "n": 709,
+    "test": {
+      "n": 709,
+      "wPlus": 228250.5,
+      "z": 18.77045547356338,
+      "p": 0
+    },
+    "medianErrorFactorBefore": 1.4631879438865238,
+    "medianErrorFactorAfter": 1.1290536500641137,
+    "byCards": [
+      {
+        "cards": 1,
+        "n": 287,
+        "medianErrorFactorBefore": 1.431905183873642,
+        "medianErrorFactorAfter": 1.2729574382181321
+      },
+      {
+        "cards": 2,
+        "n": 203,
+        "medianErrorFactorBefore": 1.3464536912198406,
+        "medianErrorFactorAfter": 1.1205151818384362
+      },
+      {
+        "cards": 3,
+        "n": 219,
+        "medianErrorFactorBefore": 1.6903444283615578,
+        "medianErrorFactorAfter": 1.0741158122472874
+      }
+    ]
+  },
+  "sensitivity": [
+    {
+      "name": "Budget +$10 (trivial)",
+      "meaningful": false,
+      "n": 1000,
+      "flips": 33,
+      "rate": 0.033
+    },
+    {
+      "name": "Value of time ×1.05 (trivial)",
+      "meaningful": false,
+      "n": 1000,
+      "flips": 25,
+      "rate": 0.025
+    },
+    {
+      "name": "Budget −$250",
+      "meaningful": true,
+      "n": 1000,
+      "flips": 357,
+      "rate": 0.357
+    },
+    {
+      "name": "Budget +$250",
+      "meaningful": true,
+      "n": 1000,
+      "flips": 413,
+      "rate": 0.413
+    },
+    {
+      "name": "Campus Central ↔ North",
+      "meaningful": true,
+      "n": 1000,
+      "flips": 645,
+      "rate": 0.645
+    },
+    {
+      "name": "Walk ↔ bus",
+      "meaningful": true,
+      "n": 1000,
+      "flips": 270,
+      "rate": 0.27
+    },
+    {
+      "name": "In-unit laundry toggled",
+      "meaningful": true,
+      "n": 999,
+      "flips": 656,
+      "rate": 0.6566566566566566
+    },
+    {
+      "name": "Value of time ×2",
+      "meaningful": true,
+      "n": 1000,
+      "flips": 288,
+      "rate": 0.288
+    }
+  ],
+  "sensitivityTest": {
+    "p1": 0.357,
+    "p2": 0.033,
+    "z": 18.28583373109578,
+    "p": 0
+  },
+  "utilityShares": {
+    "rent": 0.6344468421978386,
+    "commuteTime": 0.17800406709078254,
+    "quality": 0.07105632103871305,
+    "extras": 0.029447876563926435,
+    "overBudgetPenalty": 0.08704489310873956
+  },
+  "landlordTable": [
+    {
+      "landlord": "Hackberry Lane",
+      "inventoryShare": 0.08333333333333333,
+      "top1Share": 0.09
+    },
+    {
+      "landlord": "Maize & Blue Rentals",
+      "inventoryShare": 0.18333333333333332,
+      "top1Share": 0.201
+    },
+    {
+      "landlord": "Arbor Property Co.",
+      "inventoryShare": 0.125,
+      "top1Share": 0.093
+    },
+    {
+      "landlord": "Huron View Living",
+      "inventoryShare": 0.11666666666666667,
+      "top1Share": 0.199
+    },
+    {
+      "landlord": "Kerry Lane Homes",
+      "inventoryShare": 0.14166666666666666,
+      "top1Share": 0.109
+    },
+    {
+      "landlord": "Packard PM",
+      "inventoryShare": 0.03333333333333333,
+      "top1Share": 0.011
+    },
+    {
+      "landlord": "Northwood Residential",
+      "inventoryShare": 0.11666666666666667,
+      "top1Share": 0.092
+    },
+    {
+      "landlord": "J. Lee (house owner)",
+      "inventoryShare": 0.075,
+      "top1Share": 0.087
+    },
+    {
+      "landlord": "M. Patel (house owner)",
+      "inventoryShare": 0.125,
+      "top1Share": 0.118
+    }
+  ],
+  "landlordPermutationChanges": 0,
+  "monteCarlo": [
+    {
+      "particles": 250,
+      "sdOfConfidence": 0.009846448612437586,
+      "top1AgreesWithReference": 0.968,
+      "msPerStep": 1.4960903999987059
+    },
+    {
+      "particles": 500,
+      "sdOfConfidence": 0.00822184559922946,
+      "top1AgreesWithReference": 0.976,
+      "msPerStep": 2.8068400000026448
+    },
+    {
+      "particles": 1000,
+      "sdOfConfidence": 0.005899480821212514,
+      "top1AgreesWithReference": 0.984,
+      "msPerStep": 5.73277440000372
+    },
+    {
+      "particles": 2500,
+      "sdOfConfidence": 0.0033158982434033503,
+      "top1AgreesWithReference": 0.992,
+      "msPerStep": 14.30152479999978
+    },
+    {
+      "particles": 5000,
+      "sdOfConfidence": 0.002370339323357599,
+      "top1AgreesWithReference": 1,
+      "msPerStep": 27.246255999999587
+    }
+  ],
+  "mcSlope": -0.4968970489682305,
+  "engineering": {
+    "stepMsP50": 15.860499999980675,
+    "stepMsP95": 30.104500000015832,
+    "essMean": 1979.6513327983873,
+    "essMin": 438.18534961152733,
+    "essShare": 0.7918605331193549
+  },
+  "power": {
+    "nNeeded_95vs98": 253,
+    "achievedPower": 0.9999973750855163
+  },
+  "runtime_s": 371.16
+}
