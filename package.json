@@ -14,6 +14,7 @@
     "prompt:watch": "node --watch-path=context scripts/build-prompt.mjs"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^1.11.0",
     "leaflet": "^1.9.4",
     "next": "^15.5.29",
     "react": "^19.3.1",

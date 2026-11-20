@@ -1,0 +1,116 @@
+{
+  "raw": "Bright 3 bedroom, 1.5 bath flat near Packard and Stadium — Example listing (fictional).\nRent is $2,050 a month for the whole apartment.\nHeat and water are included; tenants pay electric and internet.\nCoin laundry in the basement.\nFree driveway parking for one car.\nSorry, no pets.\nWindow A/C units in every bedroom.\nAvailable Aug 15, 2027 on a 12-month lease.\nApplication fee $45 per adult; security deposit $2,050.\nContact owner at owner.example@example.com or 734-555-0142.\n",
+  "text": "Bright 3 bedroom, 1.5 bath flat near Packard and Stadium — Example listing (fictional).\nRent is $2,050 a month for the whole apartment.\nHeat and water are included; tenants pay electric and internet.\nCoin laundry in the basement.\nFree driveway parking for one car.\nSorry, no pets.\nWindow A/C units in every bedroom.\nAvailable Aug 15, 2027 on a 12-month lease.\nApplication fee $45 per adult; security deposit $2,050.\nContact owner at [email removed] or [phone removed].\n",
+  "redactions": 2,
+  "fields": [
+    {
+      "key": "address",
+      "label": "Address",
+      "value": null,
+      "evidence": null,
+      "status": "Unknown"
+    },
+    {
+      "key": "rent",
+      "label": "Rent",
+      "value": 2050,
+      "evidence": "Rent is $2,050 a month for the whole apartment.",
+      "status": "Listed"
+    },
+    {
+      "key": "price_basis",
+      "label": "Per person or whole place",
+      "value": "per_unit",
+      "evidence": "Rent is $2,050 a month for the whole apartment.",
+      "status": "Listed"
+    },
+    {
+      "key": "beds",
+      "label": "Bedrooms",
+      "value": 3,
+      "evidence": "Bright 3 bedroom, 1.5 bath flat near Packard and Stadium — Example listing (fictional).",
+      "status": "Listed"
+    },
+    {
+      "key": "baths",
+      "label": "Bathrooms",
+      "value": 1.5,
+      "evidence": "Bright 3 bedroom, 1.5 bath flat near Packard and Stadium — Example listing (fictional).",
+      "status": "Listed"
+    },
+    {
+      "key": "sqft",
+      "label": "Size",
+      "value": null,
+      "evidence": null,
+      "status": "Unknown"
+    },
+    {
+      "key": "utilities_included",
+      "label": "Utilities included",
+      "value": [
+        "heat",
+        "water"
+      ],
+      "evidence": "Heat and water are included; tenants pay electric and internet.",
+      "status": "Listed"
+    },
+    {
+      "key": "fees",
+      "label": "Required fees",
+      "value": null,
+      "evidence": null,
+      "status": "Unknown"
+    },
+    {
+      "key": "laundry",
+      "label": "Laundry",
+      "value": "in_building",
+      "evidence": "Coin laundry in the basement.",
+      "status": "Listed"
+    },
+    {
+      "key": "parking",
+      "label": "Parking",
+      "value": true,
+      "evidence": "Free driveway parking for one car.",
+      "status": "Listed"
+    },
+    {
+      "key": "pets",
+      "label": "Pets",
+      "value": false,
+      "evidence": "Sorry, no pets.",
+      "status": "Listed"
+    },
+    {
+      "key": "ac",
+      "label": "Air conditioning",
+      "value": true,
+      "evidence": "Window A/C units in every bedroom.",
+      "status": "Listed"
+    },
+    {
+      "key": "lease_start",
+      "label": "Lease start",
+      "value": "Aug 15, 2027",
+      "evidence": "Available Aug 15, 2027 on a 12-month lease.",
+      "status": "Listed"
+    },
+    {
+      "key": "application_fee",
+      "label": "Application fee",
+      "value": 45,
+      "evidence": "Application fee $45 per adult; security deposit $2,050.",
+      "status": "Listed"
+    },
+    {
+      "key": "deposit",
+      "label": "Security deposit",
+      "value": 2050,
+      "evidence": "Application fee $45 per adult; security deposit $2,050.",
+      "status": "Listed"
+    }
+  ],
+  "questions": []
+}
