@@ -163,7 +163,7 @@ export function buildCards(ids: string[], p: Profile, ctx?: { student: Student; 
 export const BENCH_SIZE = 6;
 export const PER_BUILDING_MAX = 2;
 
-export function topAndBench(p: Profile, exclude: string[] = [], keep: string[] = []) {
+export function topAndBench(p: Profile, exclude: string[] = [], keep: string[] = [], accept: (id: string) => boolean = () => true) {
   const rk = rankAll(p);
   const perBuilding = new Map<string, number>();
   const take = (id: string) => { const b = byId.get(id)!.building_id; perBuilding.set(b, (perBuilding.get(b) ?? 0) + 1); };
@@ -172,7 +172,7 @@ export function topAndBench(p: Profile, exclude: string[] = [], keep: string[] =
   const shown = [...keep];
   const bench: string[] = [];
   for (const row of rk.rows) {
-    if (exclude.includes(row.id) || keep.includes(row.id) || !ok(row.id)) continue;
+    if (exclude.includes(row.id) || keep.includes(row.id) || !ok(row.id) || !accept(row.id)) continue;
     if (shown.length < 3) { shown.push(row.id); take(row.id); }
     else if (bench.length < BENCH_SIZE) { bench.push(row.id); take(row.id); }
     if (shown.length >= 3 && bench.length >= BENCH_SIZE) break;
@@ -185,8 +185,8 @@ export type XReason = 'too_expensive' | 'too_far' | 'dont_like' | 'skip';
 /** X-button reasons are a free extra answer: they update α or the budget before re-ranking. */
 export function applyXReason(p: Profile, removed: Listing, reason: XReason, student: Student): { profile: Profile; note: string } {
   if (reason === 'too_far') {
-    const lo = Math.max(p.alphaLo ?? 0, student.alpha);
-    return { profile: { ...p, alphaLo: lo }, note: `Got it — your time is worth at least about $${Math.round(lo)} an hour.` };
+    const lo = Math.round(Math.max(p.alphaLo ?? 0, student.alpha * 1.5));
+    return { profile: { ...p, alphaLo: lo, alphaHi: p.alphaHi != null && p.alphaHi <= lo ? undefined : p.alphaHi }, note: `Got it — your time is worth at least about $${lo} an hour.` };
   }
   if (reason === 'too_expensive') {
     const g = p.living === 'match' ? 1 : (groupOf(p) ?? student.group);
@@ -203,17 +203,27 @@ export function benchNext(p: Profile, shown: string[], removedId: string, reason
   const { profile, note } = applyXReason(p, removed, reason, before.student);
   const keep = shown.filter(id => id !== removedId);
   const exclude = Array.from(new Set([...seen, removedId, ...shown]));
-  let tb = topAndBench(profile, exclude, keep);
+  // the reason constrains the replacement: "too far" must be closer, "too expensive" must be cheaper
+  const g = p.living === 'match' ? 1 : (groupOf(p) ?? before.student.group);
+  const costOf = (l: Listing) => trueMonthlyCost(l, { group: g, mode: before.student.mode, needsParking: before.student.parking }).perPerson;
+  const remMin = commuteFor(removed, before.student).minutes, remCost = costOf(removed);
+  const accept = (id: string) => {
+    const l = byId.get(id)!;
+    if (reason === 'too_far') return commuteFor(l, before.student).minutes < remMin;
+    if (reason === 'too_expensive') return costOf(l) < remCost;
+    return true;
+  };
+  let tb = topAndBench(profile, exclude, keep, accept);
   let widened = '';
   let prof = profile;
-  if (tb.shown.length < shown.length) { // bench ran dry → widen: budget +10%
+  if (tb.shown.length < shown.length) { // bench ran dry → widen: budget +10%, drop extra filters
     prof = { ...profile, budget: profile.budget ? Math.round(profile.budget * 1.1) : profile.budget, extra: [] };
-    tb = topAndBench(prof, exclude, keep);
+    tb = topAndBench(prof, exclude, keep, accept);
     widened = 'We widened your search: budget +10% and dropped extra filters.';
   }
   const replacement = tb.shown.find(id => !keep.includes(id)) ?? null;
-  const slot = shown.indexOf(removedId);
-  const nextShown = [...keep]; if (replacement) nextShown.splice(slot, 0, replacement);
+  const order = new Map(tb.rank.rows.map((r, i) => [r.id, i]));
+  const nextShown = [...keep, ...(replacement ? [replacement] : [])].sort((a, b) => (order.get(a) ?? 1e9) - (order.get(b) ?? 1e9));
   let why = '';
   if (replacement) {
     const cards = buildCards([removedId, replacement], prof);

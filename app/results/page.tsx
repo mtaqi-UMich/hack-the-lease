@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { api, C, Page, SHADOW, Sheet, money } from '@/components/ui';
 import { WhatIf } from '@/components/WhatIf';
-import { setState, useApp } from '@/lib/store';
+import { setState, useApp, useHydrated } from '@/lib/store';
 import { encodeProfile } from '@/lib/wire';
 import type { CardOut } from '@/lib/compare';
 import type { ScoreState } from '@/lib/session';
@@ -37,10 +37,14 @@ function Results() {
   const [card, setCard] = useState(sp.get('score') === '1');
   const [step, setStep] = useState<{ optional_questions: { key: string; text: string; p: number }[]; predicted_prefs: { key: string; text: string; p: number; value?: boolean }[] } | null>(null);
 
+  const hydrated = useHydrated();
   useEffect(() => {
-    api<CompareResp>(`/api/compare?p=${encodeProfile(profile)}`).then(x => { setR(x); setState({ shown: x.cards.map(c => c.id) }); }).catch(() => {});
-    api<typeof step>('/api/onboarding/step', { profile }).then(setStep).catch(() => {});
-  }, [profile]);
+    if (!hydrated) return;
+    let live = true;
+    api<CompareResp>(`/api/compare?p=${encodeProfile(profile)}`).then(x => { if (!live) return; setR(x); setState({ shown: x.cards.map(c => c.id) }); }).catch(() => {});
+    api<typeof step>('/api/onboarding/step', { profile }).then(x => { if (live) setStep(x); }).catch(() => {});
+    return () => { live = false; };
+  }, [profile, hydrated]);
 
   const optional = step?.optional_questions.length ?? 0;
   const setScore = (k: string, v: ScoreState | 'guess') => setState(s => {

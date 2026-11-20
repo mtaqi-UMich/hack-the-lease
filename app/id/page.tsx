@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { api, C, Page, SHADOW, Toast, initials, money } from '@/components/ui';
-import { useApp } from '@/lib/store';
+import { useApp, useHydrated } from '@/lib/store';
 import { musts } from '@/lib/profileText';
 
 interface StepResp { confidence: number; predicted_prefs: { key: string; text: string; p: number; value?: boolean }[]; alpha_range: [number, number]; student: { base: string; mode: string; group: number; budget: number; parking: boolean } }
@@ -13,7 +13,8 @@ export default function IdCardPage() {
   const { profile, name } = useApp();
   const [r, setR] = useState<StepResp | null>(null);
   const [toast, setToast] = useState<string | null>(null);
-  useEffect(() => { api<StepResp>('/api/onboarding/step', { profile }).then(setR).catch(() => {}); }, [profile]);
+  const hydrated = useHydrated();
+  useEffect(() => { if (!hydrated) return; let live = true; api<StepResp>('/api/onboarding/step', { profile }).then(x => { if (live) setR(x); }).catch(() => {}); return () => { live = false; }; }, [profile, hydrated]);
 
   const s = r?.student;
   const living = profile.living === 'group' ? `A group of ${profile.groupN ?? 3}` : profile.living ? LIVING[profile.living] : s ? `${s.group === 1 ? 'Just me' : `${s.group} people`} (guessed)` : '…';

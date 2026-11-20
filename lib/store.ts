@@ -1,6 +1,6 @@
 'use client';
 // Tiny client store: the student's answers + compare state, persisted per browser (convenience only).
-import { useSyncExternalStore } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 import type { Profile } from './session';
 
 export interface AppState {
@@ -38,3 +38,6 @@ export function useApp(): AppState {
     () => initial,
   );
 }
+
+/** true after the first client render, once the store has read localStorage */
+export function useHydrated() { const [h, setH] = useState(false); useEffect(() => { getState(); setH(true); }, []); return h; }
