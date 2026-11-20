@@ -6,6 +6,7 @@ import { api, C, Page, SHADOW, money } from '@/components/ui';
 import { useApp, useHydrated } from '@/lib/store';
 import { encodeProfile } from '@/lib/wire';
 import type { CardOut } from '@/lib/compare';
+import { PhotoCarousel } from '@/components/Photos';
 
 const MapView = dynamic(() => import('@/components/MapView'), { ssr: false, loading: () => <div className="h-full min-h-[420px] w-full animate-pulse rounded-[18px]" style={{ background: '#EDEAE3' }} /> });
 const tone = (t: string) => t === 'good' ? C.good : t === 'bad' ? C.bad : C.ink;
@@ -24,7 +25,7 @@ export default function MapPage() {
   }, [profile, shown, hydrated]);
 
   const h = cards[sel];
-  const pins = useMemo(() => cards.map((c, i) => ({ id: c.id, lat: c.coord[0], lng: c.coord[1], on: i === sel, label: i === sel ? `#${i + 1} · ${money(c.total)}` : `#${i + 1}` })), [cards, sel]);
+  const pins = useMemo(() => cards.map((c, i) => ({ id: c.id, lat: c.coord[0], lng: c.coord[1], on: i === sel, label: i === sel ? `${c.short} · ${money(c.total)}` : money(c.total) })), [cards, sel]);
   const rows = h ? [
     ['Commute', `${h.commute.minutes} min · ${h.commute.label}`, h.commute.minutes <= 15 ? 'good' : h.commute.minutes >= 30 ? 'bad' : 'ink'],
     ['Night walk', h.mustHaves.night.main, h.mustHaves.night.tone],
@@ -45,13 +46,13 @@ export default function MapPage() {
       <div className="flex flex-wrap items-stretch gap-5">
         <aside className="flex min-w-0 max-w-full flex-[1_1_320px] flex-col gap-3.5 rounded-[18px] bg-white p-4" style={{ boxShadow: SHADOW }}>
           <div className="grid grid-cols-3 gap-1 rounded-full p-1" style={{ background: '#EDEAE3' }}>
-            {cards.map((c, i) => <button key={c.id} onClick={() => setSel(i)} aria-pressed={sel === i} className="h-9 cursor-pointer rounded-full border-0 text-[15px] font-semibold" style={{ background: sel === i ? '#FFFFFF' : 'transparent', color: sel === i ? C.ink : C.muted }}>#{i + 1}</button>)}
+            {cards.map((c, i) => <button key={c.id} onClick={() => setSel(i)} aria-pressed={sel === i} className="h-9 min-w-0 cursor-pointer truncate rounded-full border-0 px-2 text-[14px] font-semibold" style={{ background: sel === i ? '#FFFFFF' : 'transparent', color: sel === i ? C.ink : C.muted }}>{c.short}</button>)}
           </div>
           {h ? (<>
-            <div className="relative h-[140px] rounded-[12px]" style={{ background: h.photos[0] }}>
-              <span className="absolute left-2 top-2 flex h-[26px] items-center rounded-full bg-white px-2.5 text-[13px] font-semibold">#{sel + 1} · {h.tag}</span>
+            <PhotoCarousel key={h.id} id={h.id} short={h.short} rounded={12} className="h-[190px]">
+              <span className="absolute left-2 top-2 flex h-[26px] items-center rounded-full bg-white px-2.5 text-[13px] font-semibold">{h.tag}</span>
               <span className="absolute bottom-2 left-2 flex h-[22px] items-center rounded-full px-2 text-[12px] font-semibold" style={{ background: C.cyan, color: '#0A3D44' }}>Example</span>
-            </div>
+            </PhotoCarousel>
             <div className="flex items-baseline justify-between gap-2">
               <span className="text-[20px] font-bold tracking-[-0.02em]">{h.short}</span>
               <span className="tnum text-[22px] font-bold">{money(h.total)}<span className="text-[13px] font-medium" style={{ color: C.muted }}> / mo</span></span>
@@ -61,8 +62,8 @@ export default function MapPage() {
             </div>
             <div className="rounded-[12px] px-3.5 py-3 text-[15px]" style={{ background: '#F5F2EB' }}><span className="font-semibold" style={{ color: C.bad }}>Watch out: </span>{h.regret}</div>
             <div className="mt-auto grid grid-cols-2 gap-2">
-              <Link href="/compare" className="flex h-12 items-center justify-center rounded-full text-[15px] font-semibold no-underline" style={{ background: C.soft, color: C.ink }}>Compare</Link>
-              <Link href={`/apply?id=${h.id}`} className="flex h-12 items-center justify-center rounded-full text-[15px] font-semibold text-white no-underline" style={{ background: C.indigo }}>Apply</Link>
+              <Link href="/compare" className="lift-sm flex h-12 items-center justify-center rounded-full text-[15px] font-semibold no-underline" style={{ background: C.soft, color: C.ink }}>Compare</Link>
+              <Link href={`/apply?id=${h.id}`} className="lift-sm flex h-12 items-center justify-center rounded-full text-[15px] font-semibold text-white no-underline" style={{ background: C.indigo }}>Apply</Link>
             </div>
           </>) : <div className="h-64 animate-pulse rounded-[12px]" style={{ background: C.soft }} />}
         </aside>

@@ -21,3 +21,18 @@
 html, body { background: #FAF8F4; color: #1D1F1A; }
 body { font-family: var(--font-sans); -webkit-font-smoothing: antialiased; margin: 0; }
 .tnum { font-variant-numeric: tabular-nums; }
+
+/* Soft "rise" on hover for things you can click (cards, tiles, pills). Slow ease-out, like iOS/macOS. */
+.lift, .lift-sm {
+  transition: transform 420ms cubic-bezier(.2,.8,.2,1), box-shadow 420ms cubic-bezier(.2,.8,.2,1), filter 420ms ease;
+  will-change: transform;
+}
+@media (hover: hover) {
+  .lift:hover { transform: translateY(-4px); box-shadow: 0 1px 2px rgba(29,31,26,.06), 0 14px 32px -12px rgba(29,31,26,.22) !important; }
+  .lift-sm:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 1px 2px rgba(29,31,26,.08), 0 8px 18px -8px rgba(29,31,26,.28) !important; }
+}
+.lift:active, .lift-sm:active:not(:disabled) { transform: translateY(0) scale(.985); transition-duration: 160ms; }
+@media (prefers-reduced-motion: reduce) {
+  .lift, .lift-sm { transition: box-shadow 200ms ease; }
+  .lift:hover, .lift-sm:hover, .lift:active, .lift-sm:active { transform: none; }
+}

@@ -21,7 +21,7 @@ export function WhatIf({ studentBase, studentBudget }: { studentBase?: string; s
       <span className="text-[13px] font-semibold" style={{ color: C.muted }}>What if…</span>
       <div className="flex flex-wrap gap-1.5">
         {(['Central', 'North', 'Medical', 'Split'] as Base[]).map(b => (
-          <button key={b} onClick={() => setBase(b)} aria-pressed={base === b} className="h-9 cursor-pointer rounded-full border-0 px-3.5 text-[14px] font-semibold" style={{ background: base === b ? C.forest : C.soft, color: base === b ? C.lime : C.ink }}>{b === 'Split' ? 'Mix' : b}</button>
+          <button key={b} onClick={() => setBase(b)} aria-pressed={base === b} className="lift-sm h-9 cursor-pointer rounded-full border-0 px-3.5 text-[14px] font-semibold" style={{ background: base === b ? C.indigo : C.soft, color: base === b ? '#FFFFFF' : C.ink }}>{b === 'Split' ? 'Mix' : b}</button>
         ))}
       </div>
       <label className="flex min-w-[220px] flex-1 items-center gap-2 text-[14px]">

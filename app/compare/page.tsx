@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { api, C, Page, ProvDot, SHADOW, Toast, money } from '@/components/ui';
 import { WhatIf } from '@/components/WhatIf';
+import { PhotoCarousel } from '@/components/Photos';
 import { setState, useApp, useHydrated } from '@/lib/store';
 import { encodeProfile } from '@/lib/wire';
 import type { CardOut, Cell, XReason } from '@/lib/compare';
@@ -40,7 +41,6 @@ function buildRows(cards: CardOut[], niche: string[]): Row[] {
   row('Quiet', c => ({ main: c.mustHaves.quiet.main, color: tone(c.mustHaves.quiet.tone), dot: c.mustHaves.quiet.provenance }));
   sec('Before you sign');
   row('Watch out', c => ({ main: c.regret, color: c.regret.startsWith('No big') ? C.good : '#9A5B00' }));
-  row('Time vs money', c => ({ main: c.timeVsMoney ?? (c.rank === 1 ? 'Your #1 — the others are compared with it' : '—'), color: C.ink }));
   row('If a roommate leaves', c => ({ main: c.roommateRisk, color: c.roommateRisk.includes('$0') || c.roommateRisk.startsWith('Just') ? C.good : C.bad }));
   if (niche.length) { sec('Extras'); niche.forEach(k => row(NICHES.find(n => n[0] === k)![1], c => ({ main: c.extras[k as keyof CardOut['extras']] }))); }
   return rows;
@@ -111,9 +111,9 @@ export default function ComparePage() {
           <p className="m-0 text-[17px]" style={{ color: C.muted }}>Your share per month · commute to {r ? ({ Central: 'Central Campus', North: 'North Campus', Medical: 'Medical Campus', Split: 'Central + North' } as Record<string, string>)[profile.base ?? r.student.base] : '…'} · Example data</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Link href="/map" className="flex h-12 items-center gap-2 rounded-full bg-white px-5 text-[17px] font-semibold no-underline" style={{ color: C.ink, boxShadow: SHADOW }}>
+          <Link href="/map" className="lift-sm flex h-12 items-center gap-2 rounded-full bg-white px-5 text-[17px] font-semibold no-underline" style={{ color: C.ink, boxShadow: SHADOW }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1D1F1A" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z" /><path d="M9 4v14M15 6v14" /></svg>See on map</Link>
-          <Link href={cards[0] ? `/apply?id=${cards[0].id}` : '/apply'} className="flex h-12 items-center rounded-full px-[22px] text-[17px] font-semibold text-white no-underline" style={{ background: C.indigo }}>Apply to #1</Link>
+          <Link href={cards[0] ? `/apply?id=${cards[0].id}` : '/apply'} className="lift-sm flex h-12 items-center rounded-full px-[22px] text-[17px] font-semibold text-white no-underline" style={{ background: C.indigo }}>Apply to top pick</Link>
         </div>
       </div>
 
@@ -125,17 +125,16 @@ export default function ComparePage() {
             <div className="sticky left-0 z-[1] bg-white" />
             {cards.map((c, pos) => (
               <div key={c.id} className="flex flex-col gap-2.5 px-2.5 pb-3 pt-3.5">
-                <div className="relative h-[120px] rounded-[12px]" style={{ background: c.photos[0] }}>
-                  <span className="absolute left-2 top-2 flex h-[26px] items-center rounded-full bg-white px-2.5 text-[13px] font-semibold">#{c.rank} · {c.tag}</span>
-                  <button onClick={() => { setReason('skip'); setSheet({ kind: 'replace', pos }); }} aria-label={`Replace ${c.short}`} className="absolute right-1.5 top-1.5 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border-0 bg-white">
+                <PhotoCarousel id={c.id} short={c.short} rounded={12} className="h-[150px]">
+                  <span className="absolute left-2 top-2 flex h-[26px] items-center rounded-full bg-white px-2.5 text-[13px] font-semibold">{c.tag}</span>
+                  <button onClick={() => { setReason('skip'); setSheet({ kind: 'replace', pos }); }} aria-label={`Replace ${c.short}`} className="lift-sm absolute right-1.5 top-1.5 z-[2] flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border-0 bg-white">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1D1F1A" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
                   </button>
                   <span className="absolute bottom-2 left-2 flex h-[22px] items-center rounded-full px-2 text-[12px] font-semibold" style={{ background: C.cyan, color: '#0A3D44' }}>Example</span>
                   {c.verified && <span className="absolute bottom-2 right-2 flex h-[22px] items-center rounded-full px-2 text-[12px] font-semibold" style={{ background: C.lime, color: C.forest }}>Verified</span>}
-                </div>
+                </PhotoCarousel>
                 <div className="flex flex-col"><span className="text-[17px] font-semibold">{c.short}</span><span className="text-[13px]" style={{ color: C.muted }}>{c.name} · {c.landlord}</span></div>
                 <div className="flex items-baseline gap-1"><span className="tnum text-[28px] font-bold tracking-[-0.02em]">{money(c.total)}</span><span className="text-[13px]" style={{ color: C.muted }}>/ person / mo</span></div>
-                <span className="text-[13px] font-semibold" style={{ color: C.indigo }}>{Math.round(c.pBest * 100)}% chance this is your #1</span>
               </div>
             ))}
           </div>
@@ -153,10 +152,10 @@ export default function ComparePage() {
             <div className="sticky left-0 z-[1] bg-white" />
             {cards.map((c, pos) => (
               <div key={c.id} className="flex flex-col gap-2 px-2.5 pb-4 pt-3.5">
-                <Link href={`/apply?id=${c.id}`} className="flex h-11 items-center justify-center rounded-full text-[15px] font-semibold text-white no-underline" style={{ background: C.indigo }}>Check if I qualify</Link>
+                <Link href={`/apply?id=${c.id}`} className="lift-sm flex h-11 items-center justify-center rounded-full text-[15px] font-semibold text-white no-underline" style={{ background: C.indigo }}>Check if I qualify</Link>
                 <div className="grid grid-cols-2 gap-1.5">
-                  <button onClick={() => openMessage(pos)} className="h-10 cursor-pointer rounded-full border-0 text-[14px] font-semibold" style={{ background: C.soft }}>Message</button>
-                  <button onClick={() => setSheet({ kind: 'tour', pos })} className="h-10 cursor-pointer rounded-full border-0 text-[14px] font-semibold" style={{ background: C.soft }}>Tour</button>
+                  <button onClick={() => openMessage(pos)} className="lift-sm h-10 cursor-pointer rounded-full border-0 text-[14px] font-semibold" style={{ background: C.soft }}>Message</button>
+                  <button onClick={() => setSheet({ kind: 'tour', pos })} className="lift-sm h-10 cursor-pointer rounded-full border-0 text-[14px] font-semibold" style={{ background: C.soft }}>Tour</button>
                 </div>
               </div>
             ))}
@@ -167,7 +166,7 @@ export default function ComparePage() {
       <div className="flex flex-col gap-2.5">
         <span className="text-[15px] font-semibold" style={{ color: C.muted }}>Add a row</span>
         <div className="flex flex-wrap gap-2">
-          {NICHES.map(([k, l]) => { const on = niche.includes(k); return <button key={k} onClick={() => setNiche(n => on ? n.filter(x => x !== k) : [...n, k])} aria-pressed={on} className="h-10 cursor-pointer rounded-full border-0 px-4 text-[15px] font-semibold" style={{ background: on ? C.forest : '#FFFFFF', color: on ? C.lime : C.ink, boxShadow: SHADOW }}>{on ? '− ' : '+ '}{l}</button>; })}
+          {NICHES.map(([k, l]) => { const on = niche.includes(k); return <button key={k} onClick={() => setNiche(n => on ? n.filter(x => x !== k) : [...n, k])} aria-pressed={on} className="lift-sm h-10 cursor-pointer rounded-full border-0 px-4 text-[15px] font-semibold" style={{ background: on ? C.indigo : '#FFFFFF', color: on ? '#FFFFFF' : C.ink, boxShadow: SHADOW }}>{on ? '− ' : '+ '}{l}</button>; })}
         </div>
       </div>
       <div className="flex flex-wrap gap-4 text-[13px]" style={{ color: C.muted }}>
@@ -180,19 +179,19 @@ export default function ComparePage() {
         <div className="fixed inset-0 z-40 flex items-start justify-center px-4 pt-[120px]" style={{ background: 'rgba(29,31,26,.35)' }} onClick={() => setSheet(null)}>
           <div role="dialog" aria-label={sheet.kind} className="flex w-full max-w-[440px] flex-col gap-3 rounded-[24px] bg-white p-6" style={{ boxShadow: '0 1px 2px rgba(29,31,26,.06), 0 18px 40px -16px rgba(29,31,26,.22)' }} onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between gap-2">
-              <span className="text-[20px] font-bold tracking-[-0.02em]">{sheet.kind === 'replace' ? `Replace #${sheet.pos + 1}` : sheet.kind === 'message' ? `Message · ${tgt.short}` : `Tour · ${tgt.short}`}</span>
+              <span className="text-[20px] font-bold tracking-[-0.02em]">{sheet.kind === 'replace' ? `Replace ${tgt.short}` : sheet.kind === 'message' ? `Message · ${tgt.short}` : `Tour · ${tgt.short}`}</span>
               <button onClick={() => setSheet(null)} aria-label="Close" className="flex h-9 w-9 flex-none cursor-pointer items-center justify-center rounded-full border-0" style={{ background: C.soft }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1D1F1A" strokeWidth="1.9" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg></button>
             </div>
             {sheet.kind === 'replace' && (<>
               <span className="text-[13px] font-semibold" style={{ color: C.muted }}>Why? (optional — it sharpens your next match)</span>
               <div className="flex flex-wrap gap-1.5">
-                {REASONS.map(([k, l]) => <button key={k} onClick={() => setReason(k)} aria-pressed={reason === k} className="h-9 cursor-pointer rounded-full border-0 px-3.5 text-[14px] font-semibold" style={{ background: reason === k ? C.indigo : C.soft, color: reason === k ? '#FFFFFF' : C.ink }}>{l}</button>)}
+                {REASONS.map(([k, l]) => <button key={k} onClick={() => setReason(k)} aria-pressed={reason === k} className="lift-sm h-9 cursor-pointer rounded-full border-0 px-3.5 text-[14px] font-semibold" style={{ background: reason === k ? C.indigo : C.soft, color: reason === k ? '#FFFFFF' : C.ink }}>{l}</button>)}
               </div>
-              <button onClick={nextBest} disabled={busy} className="flex cursor-pointer flex-col gap-1 rounded-[18px] border-0 p-4 text-left" style={{ background: C.lilac }}>
+              <button onClick={nextBest} disabled={busy} className="lift flex cursor-pointer flex-col gap-1 rounded-[18px] border-0 p-4 text-left" style={{ background: C.lilac }}>
                 <span className="text-[17px] font-semibold" style={{ color: C.ink }}>{busy ? 'Re-ranking…' : 'Show me the next best match'}</span>
                 <span className="text-[15px]" style={{ color: '#3F35E0' }}>{bench[0] ? `${bench[0].short} · ${money(bench[0].total)} / mo · ${Math.max(0, bench.length - 1)} more waiting` : 'You’ve seen every match — try Bring any listing'}</span>
               </button>
-              <Link href="/bring" className="flex flex-col gap-1 rounded-[18px] p-4 no-underline" style={{ background: '#F5F2EB' }}>
+              <Link href="/bring" className="lift flex flex-col gap-1 rounded-[18px] p-4 no-underline" style={{ background: '#F5F2EB' }}>
                 <span className="text-[17px] font-semibold" style={{ color: C.ink }}>Compare a place I found elsewhere</span>
                 <span className="text-[15px]" style={{ color: C.muted }}>Paste text or type 4 fields from anywhere</span>
               </Link>
@@ -200,11 +199,11 @@ export default function ComparePage() {
             {sheet.kind === 'message' && (<>
               <textarea aria-label="Message to landlord" value={msg} onChange={e => setMsg(e.target.value)} className="h-[130px] resize-none rounded-[12px] p-3 text-[16px] leading-[1.45]" style={{ border: '1px solid rgba(29,31,26,.14)' }} />
               <span className="text-[13px]" style={{ color: C.muted }}>Demo only — Example landlords don’t receive messages.</span>
-              <button onClick={() => { setSheet(null); setToast('Message sent (demo)'); }} className="h-[52px] cursor-pointer rounded-full border-0 text-[17px] font-semibold text-white" style={{ background: C.indigo }}>Send</button>
+              <button onClick={() => { setSheet(null); setToast('Message sent (demo)'); }} className="lift-sm h-[52px] cursor-pointer rounded-full border-0 text-[17px] font-semibold text-white" style={{ background: C.indigo }}>Send</button>
             </>)}
             {sheet.kind === 'tour' && (<>
-              <div className="grid grid-cols-2 gap-2">{SLOTS.map((l, i) => <button key={l} onClick={() => setSlot(i)} className="h-12 cursor-pointer rounded-full border-0 text-[15px] font-semibold" style={{ background: slot === i ? C.indigo : C.soft, color: slot === i ? '#FFFFFF' : C.ink }}>{l}</button>)}</div>
-              <button onClick={() => { setSheet(null); setToast(`Tour requested · ${SLOTS[slot]} (demo)`); }} className="h-[52px] cursor-pointer rounded-full border-0 text-[17px] font-semibold text-white" style={{ background: C.indigo }}>Request tour</button>
+              <div className="grid grid-cols-2 gap-2">{SLOTS.map((l, i) => <button key={l} onClick={() => setSlot(i)} className="lift-sm h-12 cursor-pointer rounded-full border-0 text-[15px] font-semibold" style={{ background: slot === i ? C.indigo : C.soft, color: slot === i ? '#FFFFFF' : C.ink }}>{l}</button>)}</div>
+              <button onClick={() => { setSheet(null); setToast(`Tour requested · ${SLOTS[slot]} (demo)`); }} className="lift-sm h-[52px] cursor-pointer rounded-full border-0 text-[17px] font-semibold text-white" style={{ background: C.indigo }}>Request tour</button>
             </>)}
           </div>
         </div>

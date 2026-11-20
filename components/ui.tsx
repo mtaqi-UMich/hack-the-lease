@@ -34,7 +34,7 @@ export function Page({ children, nav = true, width = 1080 }: { children: ReactNo
       {nav && <Nav />}
       <main className="mx-auto mt-10 flex flex-col gap-6" style={{ maxWidth: width }}>{children}</main>
       <footer className="mx-auto mt-12 text-center text-[13px]" style={{ maxWidth: width, color: C.muted }}>
-        All listings, landlords and student profiles are <b>Example</b> (synthetic) data. Commute times are Estimated from a synthetic timetable. Not legal advice.
+        All listings, landlords and student profiles are <b>Example</b> (synthetic) data. Commute times are Estimated from a synthetic timetable. Listing photos are illustrative stock photos (Unsplash). Not legal advice.
       </footer>
     </div>
   );
@@ -46,7 +46,7 @@ export function ExampleTag({ text = 'Example data' }: { text?: string }) {
 
 export function Btn({ children, onClick, href, kind = 'primary', className = '', disabled, type }: { children: ReactNode; onClick?: () => void; href?: string; kind?: 'primary' | 'secondary' | 'soft' | 'ghost'; className?: string; disabled?: boolean; type?: 'button' | 'submit' }) {
   const style = kind === 'primary' ? { background: C.indigo, color: '#FFFFFF' } : kind === 'secondary' ? { background: '#FFFFFF', color: C.ink, boxShadow: SHADOW } : kind === 'soft' ? { background: C.soft, color: C.ink } : { background: 'transparent', color: C.indigo };
-  const cls = `inline-flex h-[52px] items-center justify-center gap-2 rounded-full px-[22px] text-[17px] font-semibold no-underline transition-opacity disabled:opacity-40 cursor-pointer border-0 ${className}`;
+  const cls = `inline-flex h-[52px] items-center justify-center gap-2 lift-sm rounded-full px-[22px] text-[17px] font-semibold no-underline disabled:opacity-40 cursor-pointer border-0 ${className}`;
   if (href) return <Link href={href} className={cls} style={style}>{children}</Link>;
   return <button type={type ?? 'button'} onClick={onClick} disabled={disabled} className={cls} style={style}>{children}</button>;
 }

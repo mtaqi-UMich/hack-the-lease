@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { api, C, Page, SHADOW, Sheet, money } from '@/components/ui';
 import { WhatIf } from '@/components/WhatIf';
+import { PhotoCarousel } from '@/components/Photos';
 import { setState, useApp, useHydrated } from '@/lib/store';
 import { encodeProfile } from '@/lib/wire';
 import type { CardOut } from '@/lib/compare';
@@ -61,12 +62,12 @@ function Results() {
           <h1 className="m-0 text-[34px] font-bold tracking-[-0.03em]">Your top 3</h1>
           <p className="m-0 text-[17px]" style={{ color: C.muted }}>Picked from {r?.considered ?? 120} places · all Example data</p>
         </div>
-        <Link href="/compare" className="flex h-12 items-center rounded-full px-[22px] text-[17px] font-semibold text-white no-underline" style={{ background: C.indigo }}>Compare side by side</Link>
+        <Link href="/compare" className="lift-sm flex h-12 items-center rounded-full px-[22px] text-[17px] font-semibold text-white no-underline" style={{ background: C.indigo }}>Compare side by side</Link>
       </div>
 
       <WhatIf studentBase={r?.student.base} studentBudget={r?.student.budget} />
 
-      <Link href="/onboarding?sharpen=1" className="flex items-center gap-3 rounded-[18px] px-5 py-4 no-underline" style={{ background: C.lilac }}>
+      <Link href="/onboarding?sharpen=1" className="lift flex items-center gap-3 rounded-[18px] px-5 py-4 no-underline" style={{ background: C.lilac }}>
         <span className="flex flex-1 flex-col gap-0.5"><span className="text-[17px] font-semibold" style={{ color: C.ink }}>Sharpen my matches</span>
           <span className="text-[15px]" style={{ color: '#3F35E0' }}>{r ? `${Math.round(r.confidence * 100)}% sure now · ` : ''}{r && r.confidence >= 0.99 ? 'up to 3 quick questions to pick between your top 3' : optional ? `up to ${Math.min(3, optional + 1)} quick questions could change your #3` : 'up to 3 quick questions'}</span></span>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3F35E0" strokeWidth="1.9" strokeLinecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
@@ -74,25 +75,25 @@ function Results() {
 
       <div className="grid gap-5" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))' }}>
         {(r?.cards ?? [null, null, null]).map((c, i) => c ? (
-          <Link key={c.id} href="/compare" className="flex flex-col overflow-hidden rounded-[18px] bg-white no-underline" style={{ boxShadow: SHADOW, color: C.ink }}>
-            <div className="relative h-40" style={{ background: c.photos[0] }}>
+          <Link key={c.id} href="/compare" className="lift flex flex-col overflow-hidden rounded-[18px] bg-white no-underline" style={{ boxShadow: SHADOW, color: C.ink }}>
+            <PhotoCarousel id={c.id} short={c.short} className="h-48">
               <span className="absolute left-3 top-3 flex h-7 items-center rounded-full bg-white px-3 text-[13px] font-semibold">{i === 0 ? 'Best overall' : c.tag}</span>
               <span className="absolute right-3 top-3 flex h-7 items-center rounded-full px-3 text-[13px] font-semibold" style={{ background: C.cyan, color: '#0A3D44' }}>Example</span>
-            </div>
+            </PhotoCarousel>
             <div className="flex flex-col gap-1.5 px-5 pb-5 pt-[18px]">
               <div className="flex items-baseline justify-between gap-2"><span className="text-[17px] font-semibold">{c.short}</span><span className="tnum text-[22px] font-bold">{money(c.total)}</span></div>
               <span className="text-[15px]" style={{ color: C.muted }}>{lineFor(c)}</span>
-              <span className="text-[13px]" style={{ color: C.muted }}>{c.name} · {c.landlord} · {Math.round(c.pBest * 100)}% chance this is your #1</span>
+              <span className="text-[13px]" style={{ color: C.muted }}>{c.name} · {c.landlord}</span>
             </div>
           </Link>
         ) : <div key={i} className="h-[260px] animate-pulse rounded-[18px] bg-white" />)}
       </div>
 
       <div className="flex flex-wrap justify-center gap-2">
-        <button onClick={() => setScoreOpen(o => !o)} aria-expanded={scoreOpen} className="h-11 cursor-pointer rounded-full border-0 px-[18px] text-[15px] font-semibold" style={{ background: C.soft, color: C.ink }}>How we rank</button>
-        <button onClick={() => setCard(true)} className="h-11 cursor-pointer rounded-full border-0 px-[18px] text-[15px] font-semibold" style={{ background: C.soft, color: C.ink }}>My scorecard</button>
-        <Link href="/map" className="flex h-11 items-center rounded-full px-[18px] text-[15px] font-semibold no-underline" style={{ background: C.soft, color: C.ink }}>See on map</Link>
-        <Link href="/bring" className="flex h-11 items-center rounded-full px-[18px] text-[15px] font-semibold no-underline" style={{ background: C.soft, color: C.ink }}>Add a listing from elsewhere</Link>
+        <button onClick={() => setScoreOpen(o => !o)} aria-expanded={scoreOpen} className="lift-sm h-11 cursor-pointer rounded-full border-0 px-[18px] text-[15px] font-semibold" style={{ background: C.soft, color: C.ink }}>How we rank</button>
+        <button onClick={() => setCard(true)} className="lift-sm h-11 cursor-pointer rounded-full border-0 px-[18px] text-[15px] font-semibold" style={{ background: C.soft, color: C.ink }}>My scorecard</button>
+        <Link href="/map" className="lift-sm flex h-11 items-center rounded-full px-[18px] text-[15px] font-semibold no-underline" style={{ background: C.soft, color: C.ink }}>See on map</Link>
+        <Link href="/bring" className="lift-sm flex h-11 items-center rounded-full px-[18px] text-[15px] font-semibold no-underline" style={{ background: C.soft, color: C.ink }}>Add a listing from elsewhere</Link>
       </div>
 
       {scoreOpen && r?.weights && (

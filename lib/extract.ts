@@ -71,7 +71,7 @@ export function ruleExtract(text: string): Extracted[] {
   if (laundryS) set('laundry', /in[- ]unit|in the unit|washer and dryer in|w\/d in unit/i.test(laundryS) ? 'in_unit' : /coin|shared|on[- ]site|building|basement/i.test(laundryS) ? 'in_building' : /no laundry/i.test(laundryS) ? 'none' : 'mentioned', laundryS);
   const parkS = find(ss, /parking|garage|driveway/i);
   if (parkS) set('parking', /no parking|street parking only/i.test(parkS) ? false : true, parkS);
-  const petS = find(ss, /pets?|dogs?|cats?/i);
+  const petS = find(ss, /\b(?:pets?|dogs?|cats?)\b/i);
   if (petS) set('pets', /no pets|pets not allowed|not pet/i.test(petS) ? false : true, petS);
   const acS = find(ss, /\bA\/?C\b|air[- ]condition|central air/i);
   if (acS) set('ac', /no (?:a\/?c|air)/i.test(acS) ? false : true, acS);
