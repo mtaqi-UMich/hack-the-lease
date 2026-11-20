@@ -1,0 +1,9 @@
+{
+  "name": "hack-the-lease",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "prompt": "node scripts/build-prompt.mjs",
+    "prompt:watch": "node --watch-path=context scripts/build-prompt.mjs"
+  }
+}

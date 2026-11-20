@@ -1,0 +1,35 @@
+name: Rebuild shared prompt
+
+# Whenever anyone pushes a change to context/, regenerate CLAUDE.md and prompt/*
+# and commit the result, so the prompt is always in sync with the team's thinking.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "context/**"
+      - "scripts/build-prompt.mjs"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node scripts/build-prompt.mjs
+      - name: Commit regenerated prompt
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git config user.name "prompt-bot"
+            git config user.email "prompt-bot@users.noreply.github.com"
+            git add CLAUDE.md prompt/
+            git commit -m "chore: rebuild shared prompt [skip ci]"
+            git push
+          else
+            echo "Prompt already up to date."
+          fi
