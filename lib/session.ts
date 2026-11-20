@@ -67,11 +67,14 @@ function setKey(p: Profile) {
   return [p.living === 'match' ? 'match' : 'std', (p.extra ?? []).slice().sort().join(','), ms, p.hardBudget ? `hard${p.budget}g${groupOf(p)}` : ''].join('|');
 }
 const cache = new Map<string, Engine>();
-export function engineFor(p: Profile, opts: { poolSize?: number; tau?: number } = {}): Engine {
-  const key = setKey(p) + `|${opts.poolSize ?? POOL}|${opts.tau ?? TAU}`;
+export interface StepOpts { poolSize?: number; tau?: number; maxScreens?: number; sharpen?: boolean }
+export const SHARPEN = { tau: 0.99, extra: 3 };
+export function engineFor(p: Profile, opts: StepOpts = {}): Engine {
+  if (opts.sharpen) opts = { ...opts, tau: SHARPEN.tau, maxScreens: MAX_SCREENS + SHARPEN.extra };
+  const key = setKey(p) + `|${opts.poolSize ?? POOL}|${opts.tau ?? TAU}|${opts.maxScreens ?? MAX_SCREENS}`;
   let e = cache.get(key);
   if (!e) {
-    e = createEngine({ listings: listingSet(p), poolSize: opts.poolSize ?? POOL, tau: opts.tau ?? TAU, maxScreens: MAX_SCREENS, seed: 1 });
+    e = createEngine({ listings: listingSet(p), poolSize: opts.poolSize ?? POOL, tau: opts.tau ?? TAU, maxScreens: opts.maxScreens ?? MAX_SCREENS, seed: 1 });
     if (cache.size > 64) cache.clear();
     cache.set(key, e);
   }
@@ -164,7 +167,7 @@ export interface StepOut {
   matchCount: number; alphaRange: [number, number]; student: Student;
 }
 
-export function step(p: Profile, opts: { poolSize?: number; tau?: number } = {}): StepOut {
+export function step(p: Profile, opts: StepOpts = {}): StepOut {
   const e = engineFor(p, opts);
   const ans = toAnswers(p);
   const st = e.step(ans);
@@ -173,7 +176,7 @@ export function step(p: Profile, opts: { poolSize?: number; tau?: number } = {})
   const g = groupOf(p);
   const matchCount = e.listings.filter(l => (g == null || (l.beds >= g && l.beds <= g + 1)) && (p.budget == null || l.rent / (g ?? 1) <= p.budget * 1.0001)).length;
   return {
-    done: st.done, reason: st.reason, screen: (p.asked ?? []).length, maxScreens: MAX_SCREENS,
+    done: st.done, reason: st.reason, screen: (p.asked ?? []).length, maxScreens: e.opts.maxScreens,
     next, rawNext: st.next ? { id: st.next.id, threshold: st.next.threshold, dollars: st.next.dollars, items: st.next.items } : null,
     gain_table: st.cands.map(c => ({ id: c.id, bits: Math.round(c.gain * 1000) / 1000 })),
     confidence: st.conf,
