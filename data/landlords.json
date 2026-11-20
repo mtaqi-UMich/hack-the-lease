@@ -1,0 +1,66 @@
+[
+  {
+    "id": "hackberry",
+    "name": "Hackberry Lane",
+    "kind": "operator",
+    "verifiedCadenceDays": 3,
+    "contact": "leasing@example-hackberry.test",
+    "launchPartner": true
+  },
+  {
+    "id": "maizeblue",
+    "name": "Maize & Blue Rentals",
+    "kind": "operator",
+    "verifiedCadenceDays": 5,
+    "contact": "hello@example-maizeblue.test"
+  },
+  {
+    "id": "arborprop",
+    "name": "Arbor Property Co.",
+    "kind": "operator",
+    "verifiedCadenceDays": 6,
+    "contact": "leasing@example-arborprop.test"
+  },
+  {
+    "id": "huronview",
+    "name": "Huron View Living",
+    "kind": "operator",
+    "verifiedCadenceDays": 4,
+    "contact": "team@example-huronview.test"
+  },
+  {
+    "id": "kerrylane",
+    "name": "Kerry Lane Homes",
+    "kind": "small",
+    "verifiedCadenceDays": 10,
+    "contact": "kerrylane@example.test"
+  },
+  {
+    "id": "packardpm",
+    "name": "Packard PM",
+    "kind": "small",
+    "verifiedCadenceDays": 14,
+    "contact": "office@example-packardpm.test"
+  },
+  {
+    "id": "northwoodre",
+    "name": "Northwood Residential",
+    "kind": "operator",
+    "verifiedCadenceDays": 5,
+    "contact": "rent@example-northwood.test"
+  },
+  {
+    "id": "owner_jlee",
+    "name": "J. Lee (house owner)",
+    "kind": "house_owner",
+    "verifiedCadenceDays": 21,
+    "contact": "jlee@example.test"
+  },
+  {
+    "id": "owner_mpatel",
+    "name": "M. Patel (house owner)",
+    "kind": "house_owner",
+    "verifiedCadenceDays": 21,
+    "contact": "mpatel@example.test"
+  }
+]
