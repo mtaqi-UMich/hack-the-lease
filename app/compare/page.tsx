@@ -12,7 +12,9 @@ import { ComparePicker } from '@/components/ComparePicker';
 import type { CardOut, Cell, XReason } from '@/lib/compare';
 
 type CellV = { main: string; color?: string; sub?: string; dot?: CardOut['cost']['lines'][number]['provenance'] };
-type Row = { section: string } | { label: string; cells: CellV[] };
+type Row = { section: string } | { label: string; cells: CellV[]; sec: string };
+// Sections the student can fold away to cut clutter; Cost and Getting there always stay open.
+const FOLDABLE = new Set(['Your must-haves', 'Before you sign', 'Extras']);
 const tone = (t: Cell['tone']) => t === 'good' ? C.good : t === 'bad' ? C.bad : C.ink;
 const NICHES: [keyof CardOut['extras'], string][] = [['gym', 'Gym'], ['groc', 'Groceries'], ['food', 'Late-night food'], ['park', 'Parking'], ['bus', 'Bus stop']];
 const REASONS: [XReason, string][] = [['too_expensive', 'Too expensive'], ['too_far', 'Too far'], ['dont_like', 'Don’t like the place'], ['skip', 'Skip']];
@@ -20,11 +22,12 @@ const SLOTS = ['Sat 10 AM', 'Sat 2 PM', 'Sun 11 AM', 'Mon 5 PM'];
 
 function buildRows(cards: CardOut[], niche: string[]): Row[] {
   const rows: Row[] = [];
-  const sec = (s: string) => rows.push({ section: s });
+  let cur = '';
+  const sec = (s: string) => { cur = s; rows.push({ section: s }); };
   const row = (label: string, f: (c: CardOut) => CellV, collapse = false) => {
     const cells = cards.map(f);
     if (collapse && cards.length > 1 && cells.every(c => c.main === cells[0].main)) return; // rows where all are equal collapse
-    rows.push({ label, cells });
+    rows.push({ label, cells, sec: cur });
   };
   sec('Cost');
   for (const key of ['rent', 'fees', 'utilities', 'parking', 'transport', 'laundry'] as const) {
@@ -54,6 +57,8 @@ export default function ComparePage() {
   useEffect(() => { if (pendingAdd) setPicker(true); }, [pendingAdd]); // arrived from the extension's "Save & compare"
   const closePicker = () => { setPicker(false); clearPendingAdd(); };
   const [niche, setNiche] = useState<string[]>([]);
+  const [folded, setFolded] = useState<Set<string>>(() => new Set(['Before you sign']));
+  const fold = (s: string) => setFolded(f => { const n = new Set(f); if (n.has(s)) n.delete(s); else n.add(s); return n; });
   const [sheet, setSheet] = useState<null | { kind: 'replace' | 'message' | 'tour'; pos: number }>(null);
   const [reason, setReason] = useState<XReason>('skip');
   const [slot, setSlot] = useState(0);
@@ -126,10 +131,20 @@ export default function ComparePage() {
             ))}
           </div>
           {rows.map((row, i) => 'section' in row ? (
-            <div key={i} className="grid" style={{ ...grid, background: C.bg }}>
-              <div className="sticky left-0 z-[1] px-4 py-2.5 text-[13px] font-semibold" style={{ background: C.bg, color: C.muted }}>{row.section}</div>
-            </div>
-          ) : (
+            FOLDABLE.has(row.section) ? (
+              <button key={i} onClick={() => fold(row.section)} aria-expanded={!folded.has(row.section)} className="grid w-full cursor-pointer border-0 p-0 text-left transition-colors duration-200 hover:brightness-[0.97]" style={{ ...grid, background: C.bg }}>
+                <span className="sticky left-0 z-[1] flex items-center gap-1.5 px-4 py-2.5 text-[13px] font-semibold" style={{ background: C.bg, color: C.muted }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ transform: folded.has(row.section) ? 'rotate(-90deg)' : undefined, transition: 'transform 200ms' }}><path d="M6 9l6 6 6-6" /></svg>
+                  {row.section}
+                </span>
+                <span className="flex items-center px-2.5 text-[13px]" style={{ color: '#3F35E0' }}>{folded.has(row.section) ? `${rows.filter(r => 'sec' in r && r.sec === row.section).length} rows · show` : 'hide'}</span>
+              </button>
+            ) : (
+              <div key={i} className="grid" style={{ ...grid, background: C.bg }}>
+                <div className="sticky left-0 z-[1] px-4 py-2.5 text-[13px] font-semibold" style={{ background: C.bg, color: C.muted }}>{row.section}</div>
+              </div>
+            )
+          ) : folded.has(row.sec) ? null : (
             <div key={i} className="grid" style={{ ...grid, borderTop: '1px solid rgba(29,31,26,.08)' }}>
               <div className="sticky left-0 z-[1] bg-white px-4 py-3 text-[15px]" style={{ color: C.muted }}>{row.label}</div>
               {row.cells.map(cell)}
