@@ -17,7 +17,7 @@ export default function MapPage() {
   const rows = h ? [
     ['Commute', `${h.commute.minutes} min · ${h.commute.label}`, h.commute.minutes <= 15 ? 'good' : h.commute.minutes >= 30 ? 'bad' : 'ink'],
     ['Night walk', h.mustHaves.night.main, h.mustHaves.night.tone],
-    ['Lyft Night Owl', h.mustHaves.owl.main, h.mustHaves.owl.tone],
+    ['Lyft Pass', h.mustHaves.owl.main, h.mustHaves.owl.tone],
     ['TransLoc pickup', h.mustHaves.transloc.main, h.mustHaves.transloc.tone],
     ['Laundry', h.mustHaves.laundry.main, h.mustHaves.laundry.tone],
     ['Quiet', h.mustHaves.quiet.main, h.mustHaves.quiet.tone],

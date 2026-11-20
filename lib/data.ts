@@ -1,8 +1,10 @@
 import listingsJson from '../data/listings.json';
 import landlordsJson from '../data/landlords.json';
 import type { Listing, Landlord } from './types';
+import { inLyftZone } from './zones';
 
-export const LISTINGS = listingsJson as unknown as Listing[];
+// owlZone comes from the real Lyft Pass coverage polygon (lib/zones.ts), not the old distance rule in the generator
+export const LISTINGS = (listingsJson as unknown as Listing[]).map(l => ({ ...l, owlZone: inLyftZone(l.coord) }));
 export const LANDLORDS = landlordsJson as Landlord[];
 export const byId = new Map(LISTINGS.map(l => [l.id, l]));
 export const landlordName = (id: string) => LANDLORDS.find(l => l.id === id)?.name ?? id;

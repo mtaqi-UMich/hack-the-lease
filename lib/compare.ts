@@ -66,7 +66,7 @@ function cells(l: Listing): CardOut['mustHaves'] {
   const laundry = { in_unit: 'In unit', in_building: 'In building', basement: 'Basement', none: 'None' }[l.amenities.laundry];
   return {
     night: { main: nightMain, tone: lit >= 0.65 || nightMain === 'Campus path' ? 'good' : 'bad', sub: `${l.night.walkMin} min from the Diag · ${Math.round(lit * 100)}% lit · last bus ${l.night.lastBus}`, provenance: 'Estimated' },
-    owl: l.owlZone ? { main: '$4 off', tone: 'good', sub: 'in zone · 8 PM–7 AM' } : { main: 'Outside zone', tone: 'bad', sub: 'full fare' },
+    owl: l.owlZone ? { main: 'In zone', tone: 'good', sub: 'Lyft Pass coverage · pickup and drop-off inside' } : { main: 'Outside zone', tone: 'bad', sub: 'Lyft Pass won’t apply from here' },
     transloc: l.translocCovered ? { main: 'Covered', tone: 'good' } : { main: 'Not covered', tone: 'bad' },
     laundry: { main: laundry, tone: l.amenities.laundry === 'in_unit' ? 'good' : 'bad' },
     quiet: l.quietLabel ? { main: l.quietLabel, tone: l.quietLabel === 'Quiet street' ? 'good' : l.quietLabel === 'Busy weekends' ? 'bad' : 'ink' } : { main: 'Unknown', tone: 'ink', provenance: 'Unknown' },

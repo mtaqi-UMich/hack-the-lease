@@ -8,6 +8,7 @@
 import { LISTINGS } from './data';
 import { geocode, type Extracted, type FieldKey } from './extract';
 import type { Fee, Listing } from './types';
+import { inLyftZone } from './zones';
 
 export const BROUGHT_ID = 'BYO';
 export interface Brought { fields: Pick<Extracted, 'key' | 'value' | 'status'>[]; hood?: string; label?: string }
@@ -48,7 +49,7 @@ export function broughtToListing(b: Brought): Listing | null {
     amenities: { laundry, ac: yes('ac'), furnished: false, private_bath: false, pets: yes('pets'), parking: yes('parking'), parking_fee: null, gym_onsite: false },
     application_fee: Number(get('application_fee') ?? 0), application_fee_refundable: false, deposit: Number(get('deposit') ?? 0),
     screening_criteria_url: '', asks_criminal_history: false, landlord_contact: '',
-    quietLabel: null, photos: [],
+    quietLabel: null, photos: [], owlZone: inLyftZone(geo.coord),
     example: true,
   } as Listing;
 }

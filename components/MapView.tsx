@@ -1,4 +1,5 @@
 'use client';
+import { LYFT_ZONE } from '@/lib/zones';
 // Leaflet + OpenStreetMap tiles; falls back to the stylised map from design/Map.dc.html if tiles fail.
 import { useEffect, useRef, useState } from 'react';
 import 'leaflet/dist/leaflet.css';
@@ -15,12 +16,12 @@ function Stylised({ pins, onPick }: { pins: Pin[]; onPick: (id: string) => void 
   const [cx, cy] = xy(...CENTRAL), [nx, ny] = xy(...NORTH);
   return (
     <div className="absolute inset-0">
-      <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 h-full w-full" role="img" aria-label="Stylised map of Ann Arbor with campus areas and the Lyft Night Owl zone">
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 h-full w-full" role="img" aria-label="Stylised map of Ann Arbor with campus areas and the Lyft Pass coverage area">
         <rect width="100" height="100" fill="#EDEAE3" />
         <path d="M0 52 C 20 48, 35 40, 55 30 S 85 15, 100 12" stroke="#B7F3F7" strokeWidth="2.2" fill="none" />
         <ellipse cx={cx} cy={cy} rx="9" ry="8" fill={C.lime} opacity="0.55" />
         <ellipse cx={nx} cy={ny} rx="10" ry="8" fill={C.lime} opacity="0.55" />
-        <ellipse cx={cx} cy={cy} rx="34" ry="42" fill="none" stroke={C.indigo} strokeDasharray="1.5 1.2" strokeWidth="0.4" />
+        <polygon points={LYFT_ZONE.map(([la, ln]) => xy(la, ln).join(',')).join(' ')} fill={C.indigo} fillOpacity="0.05" stroke={C.indigo} strokeDasharray="1.5 1.2" strokeWidth="0.4" />
       </svg>
       <span className="absolute text-[13px] font-semibold" style={{ left: `${cx}%`, top: `${cy}%`, transform: 'translate(-50%,-50%)', color: C.forest }}>Central Campus</span>
       <span className="absolute text-[13px] font-semibold" style={{ left: `${nx}%`, top: `${ny}%`, transform: 'translate(-50%,-50%)', color: C.forest }}>North Campus</span>
@@ -54,7 +55,7 @@ export default function MapView({ pins, onPick }: { pins: Pin[]; onPick: (id: st
       tiles.addTo(m);
       L.circle(CENTRAL, { radius: 550, color: C.forest, weight: 0, fillColor: C.lime, fillOpacity: 0.45 }).addTo(m).bindTooltip('Central Campus');
       L.circle(NORTH, { radius: 650, color: C.forest, weight: 0, fillColor: C.lime, fillOpacity: 0.45 }).addTo(m).bindTooltip('North Campus');
-      L.circle(CENTRAL, { radius: 2000, color: C.indigo, weight: 2, dashArray: '6 6', fill: false }).addTo(m).bindTooltip('Lyft Night Owl zone (Example boundary)');
+      L.polygon(LYFT_ZONE, { color: C.indigo, weight: 2, dashArray: '6 6', fillColor: C.indigo, fillOpacity: 0.06 }).addTo(m).bindTooltip('Lyft Pass coverage area — pickup and drop-off must both be inside');
       layer.current = L.layerGroup().addTo(m);
       map.current = m;
       setTimeout(() => m.invalidateSize(), 50);
@@ -84,7 +85,7 @@ export default function MapView({ pins, onPick }: { pins: Pin[]; onPick: (id: st
     <div className="relative h-full min-h-[420px] w-full overflow-hidden rounded-[18px]" style={{ background: '#EDEAE3' }}>
       {fallback ? <Stylised pins={pins} onPick={onPick} /> : <div ref={el} className="absolute inset-0 z-0" />}
       <div className="pointer-events-none absolute bottom-3 left-3 z-[500] flex max-w-[calc(100%-24px)] flex-wrap gap-2">
-        <span className="flex h-[30px] items-center gap-1.5 rounded-full bg-white px-3 text-[13px] font-medium"><span className="w-3.5" style={{ borderTop: `2px dashed ${C.indigo}` }} />Lyft Night Owl zone</span>
+        <span className="flex h-[30px] items-center gap-1.5 rounded-full bg-white px-3 text-[13px] font-medium"><span className="w-3.5" style={{ borderTop: `2px dashed ${C.indigo}` }} />Lyft Pass zone</span>
         <span className="flex h-[30px] items-center rounded-full bg-white px-3 text-[13px] font-medium" style={{ color: C.muted }}>{fallback ? 'Map preview' : 'OpenStreetMap'} · Example listings</span>
       </div>
     </div>

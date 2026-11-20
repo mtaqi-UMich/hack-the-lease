@@ -35,7 +35,7 @@ function buildRows(cards: CardOut[], niche: string[]): Row[] {
   row('Bus every', c => ({ main: c.commute.every }), true);
   sec('Your must-haves');
   row('Night walk', c => ({ main: c.mustHaves.night.main, color: tone(c.mustHaves.night.tone), sub: c.mustHaves.night.sub }));
-  row('Lyft Night Owl', c => ({ main: c.mustHaves.owl.main, color: tone(c.mustHaves.owl.tone), sub: c.mustHaves.owl.sub }));
+  row('Lyft Pass', c => ({ main: c.mustHaves.owl.main, color: tone(c.mustHaves.owl.tone), sub: c.mustHaves.owl.sub }));
   row('TransLoc pickup', c => ({ main: c.mustHaves.transloc.main, color: tone(c.mustHaves.transloc.tone) }));
   row('Laundry', c => ({ main: c.mustHaves.laundry.main, color: tone(c.mustHaves.laundry.tone) }));
   row('Quiet', c => ({ main: c.mustHaves.quiet.main, color: tone(c.mustHaves.quiet.tone), dot: c.mustHaves.quiet.provenance }));
