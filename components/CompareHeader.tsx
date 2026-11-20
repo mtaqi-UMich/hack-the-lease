@@ -72,6 +72,8 @@ export function CompareHeader({ view, subtitle, count }: { view: 'table' | 'card
       <div className="flex flex-wrap items-center gap-2">
         <button onClick={() => setOpen(true)} className="lift-sm flex h-11 cursor-pointer items-center gap-2 rounded-full border-0 bg-white px-4 text-[15px] font-semibold" style={{ boxShadow: SHADOW, color: C.ink }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0" /><circle cx="16" cy="6" r="2" /><circle cx="10" cy="12" r="2" /><circle cx="18" cy="18" r="2" /></svg>My priorities</button>
+        <Link href="/map" className="lift-sm flex h-11 items-center gap-2 rounded-full bg-white px-4 text-[15px] font-semibold no-underline" style={{ boxShadow: SHADOW, color: C.ink }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z" /><path d="M9 4v14M15 6v14" /></svg>See on map</Link>
         <div className="ml-auto flex items-center gap-2">
           <span className="text-[14px] font-semibold" style={{ color: C.muted }}>Compare</span>
           <div className="flex gap-1 rounded-full p-1" style={{ background: '#EDEAE3' }} role="group" aria-label="How many places to compare">

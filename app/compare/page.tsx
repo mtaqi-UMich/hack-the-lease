@@ -57,7 +57,7 @@ export default function ComparePage() {
   useEffect(() => { if (pendingAdd) setPicker(true); }, [pendingAdd]); // arrived from the extension's "Save & compare"
   const closePicker = () => { setPicker(false); clearPendingAdd(); };
   const [niche, setNiche] = useState<string[]>([]);
-  const [folded, setFolded] = useState<Set<string>>(() => new Set(['Before you sign']));
+  const [folded, setFolded] = useState<Set<string>>(() => new Set(['Your must-haves', 'Before you sign']));
   const fold = (s: string) => setFolded(f => { const n = new Set(f); if (n.has(s)) n.delete(s); else n.add(s); return n; });
   const [sheet, setSheet] = useState<null | { kind: 'replace' | 'message' | 'tour'; pos: number }>(null);
   const [reason, setReason] = useState<XReason>('skip');
@@ -170,8 +170,7 @@ export default function ComparePage() {
 
       <div className="flex flex-col gap-2.5">
         <div className="flex flex-wrap items-center justify-between gap-2"><span className="text-[15px] font-semibold" style={{ color: C.muted }}>Add a row</span>
-          <div className="flex gap-2"><Link href="/bring" className="lift-sm flex h-10 items-center rounded-full bg-white px-4 text-[15px] font-semibold no-underline" style={{ color: C.ink, boxShadow: SHADOW }}>+ Add a listing from elsewhere</Link>
-          <Link href="/map" className="lift-sm flex h-10 items-center rounded-full bg-white px-4 text-[15px] font-semibold no-underline" style={{ color: C.ink, boxShadow: SHADOW }}>See on map</Link></div></div>
+          <Link href="/bring" className="lift-sm flex h-10 items-center rounded-full bg-white px-4 text-[15px] font-semibold no-underline" style={{ color: C.ink, boxShadow: SHADOW }}>+ Add a listing from elsewhere</Link></div>
         <div className="flex flex-wrap gap-2">
           {NICHES.map(([k, l]) => { const on = niche.includes(k); return <button key={k} onClick={() => setNiche(n => on ? n.filter(x => x !== k) : [...n, k])} aria-pressed={on} className="lift-sm h-10 cursor-pointer rounded-full border-0 px-4 text-[15px] font-semibold" style={{ background: on ? C.indigo : '#FFFFFF', color: on ? '#FFFFFF' : C.ink, boxShadow: SHADOW }}>{on ? '− ' : '+ '}{l}</button>; })}
         </div>
