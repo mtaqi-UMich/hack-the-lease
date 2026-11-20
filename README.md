@@ -5,6 +5,8 @@ Our hackathon project for Hackberry Lane: a tool that helps students pick housin
 **Live app:** https://hack-the-lease-kappa.vercel.app — redeploys automatically on every push to `main`.
 All listings, landlords and students in the app are synthetic (**Example** data).
 
+**New here? Read [docs/HANDOFF.md](docs/HANDOFF.md)**: it maps every file, the analysis, the pitch and the deck.
+
 ## Start here (new laptop, ~5 minutes)
 
 ```bash

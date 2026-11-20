@@ -1,0 +1,17 @@
+<section id="qa-tests" class="footed">
+<p class="eyebrow">BACKUP · HYPOTHESIS TESTS</p>
+<h2 class="title" style="font-size:56px">Every claim, stated as a null hypothesis.</h2>
+<table class="qa">
+<tr><th style="width:26%">Claim</th><th style="width:22%">Test</th><th style="width:34%">Result</th><th style="width:18%">Decision</th></tr>
+<tr><td>Top-3 accuracy &gt; 95%</td><td>Exact binomial</td><td>98.1% (97.1–98.8%), p = 3×10⁻⁷</td><td>Supported</td></tr>
+<tr><td>Order beats fixed order</td><td>McNemar, paired</td><td>242 vs 6 discordant, p ≈ 10⁻⁵⁰</td><td>Supported</td></tr>
+<tr><td>Optional questions help</td><td>McNemar, paired</td><td>Top-1 68.8% → 73.0%</td><td>Supported</td></tr>
+<tr><td>Meter is calibrated</td><td>ECE + Hosmer–Lemeshow</td><td>ECE 1.4 pts; HL rejects at n = 4,326</td><td>Small gap, reported</td></tr>
+<tr><td>Gain forecasts unbiased</td><td>Paired t</td><td>1.13 vs 1.14 bits, p = 0.12, r = 0.81</td><td>Supported</td></tr>
+<tr><td>Cards learn value of time</td><td>Wilcoxon signed-rank</td><td>Error ×1.46 → ×1.13, z = 18.8</td><td>Supported</td></tr>
+<tr><td>Pick follows real change</td><td>Two-proportion z</td><td>36% vs 3% flips, z = 18.3</td><td>Supported</td></tr>
+</table>
+<p class="source">n = 1,000 simulated students, α = 0.05; 253 would suffice to tell 98% from 95% at 80% power. Monte Carlo error ∝ N^−0.50 (theory −0.5).</p>
+<p class="page"></p>
+<aside>Q&A backup. If asked “how do you know?”: walk down this table. Calibration: Hosmer–Lemeshow rejects because with over four thousand screens it detects even tiny gaps — every bin is within 3.5 points, ECE 1.4. We report it rather than hide it.</aside>
+</section>

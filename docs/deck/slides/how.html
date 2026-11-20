@@ -1,0 +1,26 @@
+<section id="how" class="footed">
+<p class="eyebrow">HOW IT WORKS</p>
+<h2 class="title">Each tap asks the most useful question.</h2>
+<div class="row" style="gap:80px; flex:1; align-items:stretch">
+<ol class="body" style="width:840px; margin:0; padding-left:40px; display:flex; flex-direction:column; gap:14px; font-size:30px">
+<li>We simulate <b>2,500 possible students</b> from a small Bayesian model: campus → commute mode → parking, budget, value of time.</li>
+<li>Each answer re-weights them (likelihood weighting). The confidence meter = P(your true best is in our top 3).</li>
+<li>Next question = highest expected information gain. Under 0.03 bits? Never asked.</li>
+<li>Stop at 95% confidence or 5 taps.</li>
+</ol>
+<div style="display:flex; flex-direction:column; gap:16px; flex:1">
+<p class="small">Uncertainty about which of 120 places is best (bits), after each tap</p>
+<div class="bars" style="height:250px; gap:24px">
+<div class="bar" style="width:120px"><p class="v">5.9</p><div class="fill" style="height:180px"></div><p class="x">start</p></div>
+<div class="bar" style="width:120px"><p class="v">3.6</p><div class="fill" style="height:111px"></div><p class="x">tap 1</p></div>
+<div class="bar" style="width:120px"><p class="v">2.2</p><div class="fill" style="height:66px"></div><p class="x">tap 2</p></div>
+<div class="bar" style="width:120px"><p class="v">1.4</p><div class="fill" style="height:43px"></div><p class="x">tap 3</p></div>
+<div class="bar" style="width:120px"><p class="v">0.8</p><div class="fill" style="height:24px"></div><p class="x">tap 4</p></div>
+</div>
+</div>
+</div>
+<p class="formula">gain(q) = H(best) − Σₐ P(a) · H(best | a)</p>
+<p class="source">1,000 simulated students · 5.9 bits ≈ 60 equally likely places → under 1 bit after 4 taps · predicted vs realized gain r = 0.81, no bias (paired t, p = 0.12)</p>
+<p class="page"></p>
+<aside>2:10–2:50 (40 s). “How does five taps beat seventeen screens? We keep 2,500 possible versions of you. Every answer re-weights them — that’s Bayes. Then we ask the question that’s expected to remove the most uncertainty about which apartment is best — information gain. At the start it’s about 6 bits, like 60 equally likely places. After four taps it’s under one bit, so a top three almost always contains your best. And the engine’s predictions of how much each question will help come true — correlation 0.81, no bias.”</aside>
+</section>
