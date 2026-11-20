@@ -4,6 +4,10 @@ import { useEffect, useState } from 'react';
 import { C, SHADOW } from './ui';
 import { setState, useApp } from '@/lib/store';
 import type { Base } from '@/lib/engine';
+import { isOutside } from '@/lib/brought';
+
+// Re-rank our picks but keep the student's own places (saved from the extension or brought) in their columns.
+const keepMine = (shown: string[]) => shown.filter(isOutside);
 
 export function WhatIf({ studentBase, studentBudget }: { studentBase?: string; studentBudget?: number }) {
   const { profile } = useApp();
@@ -12,10 +16,10 @@ export function WhatIf({ studentBase, studentBudget }: { studentBase?: string; s
   useEffect(() => { setBudget(profile.budget ?? studentBudget ?? 1150); }, [profile.budget, studentBudget]);
   useEffect(() => {
     if (budget === (profile.budget ?? studentBudget)) return;
-    const t = setTimeout(() => setState(s => ({ profile: { ...s.profile, budget }, shown: [] })), 350);
+    const t = setTimeout(() => setState(s => ({ profile: { ...s.profile, budget }, shown: keepMine(s.shown) })), 350);
     return () => clearTimeout(t);
   }, [budget, profile.budget, studentBudget]);
-  const setBase = (b: Base) => setState(s => ({ profile: { ...s.profile, base: b }, shown: [] }));
+  const setBase = (b: Base) => setState(s => ({ profile: { ...s.profile, base: b }, shown: keepMine(s.shown) }));
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-[18px] bg-white px-4 py-3" style={{ boxShadow: SHADOW }} aria-label="What if">
       <span className="text-[13px] font-semibold" style={{ color: C.muted }}>What if…</span>
