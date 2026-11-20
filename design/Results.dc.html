@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Your top 3</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="position: relative; min-height: 100vh; box-sizing: border-box; background: #FAF8F4; color: #1D1F1A; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; padding: 12px 16px 48px">
+
+<nav style="position: sticky; top: 12px; z-index: 5; max-width: 1080px; margin: 0 auto; height: 56px; border-radius: 999px; background: #224500; box-shadow: 0 10px 30px -12px rgba(34,69,0,.45); display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 8px 0 20px">
+<a href="Main.dc.html" style="color: #FFFFFF; font-weight: 600; font-size: 17px; letter-spacing: -0.01em; text-decoration: none">Hack the Lease</a>
+<div style="display: flex; gap: 6px">
+<a href="Results.dc.html" aria-label="My matches" style="width: 40px; height: 40px; border-radius: 999px; background: rgba(255,255,255,.28); display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"></path></svg></a>
+<a href="Compare.dc.html" aria-label="Compare" style="width: 40px; height: 40px; border-radius: 999px; background: rgba(255,255,255,.12); display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.9" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="5" height="16" rx="1.5"></rect><rect x="9.5" y="4" width="5" height="16" rx="1.5"></rect><rect x="16" y="4" width="5" height="16" rx="1.5"></rect></svg></a>
+<a href="IdCard.dc.html" aria-label="My housing ID" style="width: 40px; height: 40px; border-radius: 999px; background: #A8F06B; color: #224500; font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; text-decoration: none">AR</a>
+</div>
+</nav>
+
+<main style="max-width: 1080px; margin: 40px auto 0; display: flex; flex-direction: column; gap: 24px">
+<div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; justify-content: space-between">
+<div style="display: flex; flex-direction: column; gap: 6px; flex: 1 1 320px">
+<h1 style="margin: 0; font-size: 34px; font-weight: 700; letter-spacing: -0.03em">Your top 3</h1>
+<p style="margin: 0; font-size: 17px; color: #666666">Picked from 120 places · all Example data</p>
+</div>
+<a href="Compare.dc.html" style="height: 48px; padding: 0 22px; border-radius: 999px; background: #5046F5; color: #FFFFFF; font-size: 17px; font-weight: 600; display: flex; align-items: center; text-decoration: none">Compare side by side</a>
+</div>
+
+<a href="Onboarding.dc.html" style="border-radius: 18px; background: #EEEDFE; padding: 16px 20px; display: flex; gap: 12px; align-items: center; text-decoration: none">
+<span style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 17px; font-weight: 600; color: #1D1F1A">Sharpen my matches</span><span style="font-size: 15px; color: #3F35E0">2 more taps could change your #3</span></span>
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3F35E0" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+</a>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 20px">
+<sc-for list="{{items}}" as="it" hint-placeholder-count="3">
+<a href="Compare.dc.html" style="background: #FFFFFF; border-radius: 18px; box-shadow: 0 0.5px 1px rgba(29,31,26,.06), 0 3px 10px rgba(29,31,26,.08); overflow: hidden; text-decoration: none; color: #1D1F1A; display: flex; flex-direction: column">
+<div style="height: 160px; background: {{it.photo}}; position: relative">
+<span style="position: absolute; top: 12px; left: 12px; height: 28px; padding: 0 12px; border-radius: 999px; background: #FFFFFF; font-size: 13px; font-weight: 600; display: flex; align-items: center">{{it.tag}}</span>
+</div>
+<div style="padding: 18px 20px 20px; display: flex; flex-direction: column; gap: 6px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px">
+<span style="font-size: 17px; font-weight: 600">{{it.name}}</span>
+<span style="font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums">{{it.cost}}</span>
+</div>
+<span style="font-size: 15px; color: #666666">{{it.line}}</span>
+</div>
+</a>
+</sc-for>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center">
+<button onClick="{{toggleScore}}" aria-expanded="{{scoreOpen}}" style="height: 44px; padding: 0 18px; border-radius: 999px; border: none; background: #F2EFE8; color: #1D1F1A; font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer">How we rank</button>
+<a href="BringListing.dc.html" style="height: 44px; padding: 0 18px; border-radius: 999px; background: #F2EFE8; color: #1D1F1A; font-size: 15px; font-weight: 600; display: flex; align-items: center; text-decoration: none">Add a listing from elsewhere</a>
+</div>
+
+<sc-if value="{{scoreOpen}}" hint-placeholder-val="{{ false }}">
+<div style="max-width: 560px; width: 100%; margin: 0 auto; box-sizing: border-box; background: #FFFFFF; border-radius: 18px; padding: 20px; box-shadow: 0 0.5px 1px rgba(29,31,26,.06), 0 3px 10px rgba(29,31,26,.08); display: flex; flex-direction: column; gap: 12px">
+<sc-for list="{{weights}}" as="w" hint-placeholder-count="4">
+<div style="display: flex; align-items: center; gap: 12px; font-size: 15px">
+<span style="width: 90px">{{w.label}}</span>
+<div style="flex: 1; height: 6px; border-radius: 999px; background: #E3DFD6"><div style="height: 6px; border-radius: 999px; background: #5046F5; width: {{w.pct}}"></div></div>
+<span style="width: 40px; text-align: right; color: #666666; font-variant-numeric: tabular-nums">{{w.pct}}</span>
+</div>
+</sc-for>
+<span style="font-size: 13px; color: #666666">Your must-haves are filters, not points.</span>
+</div>
+</sc-if>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1000}}'>
+class Component extends DCLogic {
+constructor(p){ super(p); this.state = { score: false }; }
+renderVals() {
+return {
+items: [
+{ tag:'Best overall', name:'Lower Town 2BR', cost:'$1,092', photo:'#B7F3F7', line:'14 min by bus · in-unit laundry' },
+{ tag:'Cheapest', name:'Packard 2BR', cost:'$968', photo:'#EEEDFE', line:'31 min by bus · fees unknown' },
+{ tag:'Closest', name:'North Campus 2BR', cost:'$1,240', photo:'#F5F2EB', line:'6 min walk · $90 over budget' }
+],
+weights: [{label:'Cost',pct:'40%'},{label:'Commute',pct:'30%'},{label:'Quality',pct:'20%'},{label:'Extras',pct:'10%'}],
+scoreOpen: this.state.score,
+toggleScore: () => this.setState({ score: !this.state.score })
+};
+}
+}
+</script>
+</body>
+</html>

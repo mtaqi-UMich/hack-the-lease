@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Map</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="position: relative; min-height: 100vh; box-sizing: border-box; background: #FAF8F4; color: #1D1F1A; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; padding: 12px 16px 48px">
+
+<nav style="position: sticky; top: 12px; z-index: 5; max-width: 1080px; margin: 0 auto; height: 56px; border-radius: 999px; background: #224500; box-shadow: 0 10px 30px -12px rgba(34,69,0,.45); display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 8px 0 20px">
+<a href="Main.dc.html" style="color: #FFFFFF; font-weight: 600; font-size: 17px; letter-spacing: -0.01em; text-decoration: none">Hack the Lease</a>
+<div style="display: flex; gap: 6px">
+<a href="Results.dc.html" aria-label="My matches" style="width: 40px; height: 40px; border-radius: 999px; background: rgba(255,255,255,.12); display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"></path></svg></a>
+<a href="Compare.dc.html" aria-label="Compare" style="width: 40px; height: 40px; border-radius: 999px; background: rgba(255,255,255,.12); display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.9" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="5" height="16" rx="1.5"></rect><rect x="9.5" y="4" width="5" height="16" rx="1.5"></rect><rect x="16" y="4" width="5" height="16" rx="1.5"></rect></svg></a>
+<a href="IdCard.dc.html" aria-label="My housing ID" style="width: 40px; height: 40px; border-radius: 999px; background: #A8F06B; color: #224500; font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center; text-decoration: none">AR</a>
+</div>
+</nav>
+
+<main style="max-width: 1080px; margin: 32px auto 0; display: flex; flex-direction: column; gap: 20px">
+<div style="display: flex; align-items: center; gap: 12px">
+<a href="Compare.dc.html" aria-label="Back to compare" style="flex: none; width: 44px; height: 44px; border-radius: 999px; background: #FFFFFF; box-shadow: 0 0.5px 1px rgba(29,31,26,.06), 0 3px 10px rgba(29,31,26,.08); display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1D1F1A" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg></a>
+<h1 style="margin: 0; font-size: 34px; font-weight: 700; letter-spacing: -0.03em">Your top 3 on the map</h1>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: stretch">
+
+<aside style="flex: 1 1 320px; max-width: 100%; min-width: 0; background: #FFFFFF; border-radius: 18px; box-shadow: 0 0.5px 1px rgba(29,31,26,.06), 0 3px 10px rgba(29,31,26,.08); padding: 16px; display: flex; flex-direction: column; gap: 14px; box-sizing: border-box">
+<div style="padding: 4px; border-radius: 999px; background: #EDEAE3; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px">
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="3">
+<button onClick="{{t.pick}}" aria-pressed="{{t.on}}" style="height: 36px; border-radius: 999px; border: none; font-family: inherit; font-size: 15px; font-weight: 600; background: {{t.bg}}; color: {{t.fg}}; cursor: pointer">#{{t.rank}}</button>
+</sc-for>
+</div>
+<div style="height: 140px; border-radius: 12px; background: {{h.photo}}; position: relative">
+<span style="position: absolute; top: 8px; left: 8px; height: 26px; padding: 0 10px; border-radius: 999px; background: #FFFFFF; font-size: 13px; font-weight: 600; display: flex; align-items: center">{{h.tag}}</span>
+</div>
+<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px">
+<span style="font-size: 20px; font-weight: 700; letter-spacing: -0.02em">{{h.name}}</span>
+<span style="font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums">{{h.total}}<span style="font-size: 13px; font-weight: 500; color: #666666"> / mo</span></span>
+</div>
+<div style="display: flex; flex-direction: column">
+<sc-for list="{{h.rows}}" as="r" hint-placeholder-count="6">
+<div style="display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid rgba(29,31,26,.08); font-size: 15px">
+<span style="color: #666666">{{r.label}}</span><span style="font-weight: 600; color: {{r.color}}; text-align: right">{{r.value}}</span>
+</div>
+</sc-for>
+</div>
+<div style="padding: 12px 14px; border-radius: 12px; background: #F5F2EB; font-size: 15px"><span style="font-weight: 600; color: #B42318">Watch out: </span>{{h.watch}}</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: auto">
+<a href="Compare.dc.html" style="height: 48px; border-radius: 999px; background: #F2EFE8; color: #1D1F1A; font-size: 15px; font-weight: 600; display: flex; align-items: center; justify-content: center; text-decoration: none">Compare</a>
+<a href="Apply.dc.html" style="height: 48px; border-radius: 999px; background: #5046F5; color: #FFFFFF; font-size: 15px; font-weight: 600; display: flex; align-items: center; justify-content: center; text-decoration: none">Apply</a>
+</div>
+</aside>
+
+<div style="flex: 999 1 480px; min-width: 0; min-height: 420px; position: relative; border-radius: 18px; overflow: hidden; background: #EDEAE3; box-shadow: 0 0.5px 1px rgba(29,31,26,.06), 0 3px 10px rgba(29,31,26,.08)">
+<svg viewBox="0 0 1000 700" preserveAspectRatio="none" role="img" aria-label="Map of Ann Arbor showing the three places, campus areas and the Lyft Night Owl zone" style="position: absolute; inset: 0; width: 100%; height: 100%">
+<rect width="1000" height="700" fill="#EDEAE3"></rect>
+<path d="M80 120 L940 80 L960 560 L560 600 L380 520 L120 470 Z" fill="#EEEDFE" opacity="0.55"></path>
+<path d="M80 120 L940 80 L960 560 L560 600 L380 520 L120 470 Z" fill="none" stroke="#5046F5" stroke-width="2.5" stroke-dasharray="10 8" opacity="0.6"></path>
+<path d="M0 330 C200 300 350 390 480 345 S760 200 1000 175" fill="none" stroke="#B7F3F7" stroke-width="26" stroke-linecap="round"></path>
+<g stroke="#FFFFFF" stroke-width="10" stroke-linecap="round" fill="none">
+<path d="M60 430 L980 400"></path>
+<path d="M520 40 L540 690"></path>
+<path d="M300 690 L420 300 L700 120"></path>
+<path d="M600 690 L820 380"></path>
+<path d="M0 560 L1000 520"></path>
+</g>
+<ellipse cx="560" cy="460" rx="95" ry="60" fill="#A8F06B" opacity="0.55"></ellipse>
+<ellipse cx="760" cy="200" rx="110" ry="65" fill="#A8F06B" opacity="0.55"></ellipse>
+<text x="560" y="465" text-anchor="middle" font-size="22" font-weight="600" fill="#224500" font-family="-apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif">Central Campus</text>
+<text x="760" y="205" text-anchor="middle" font-size="22" font-weight="600" fill="#224500" font-family="-apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif">North Campus</text>
+<text x="110" y="340" font-size="18" fill="#0A3D44" font-family="-apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif">Huron River</text>
+</svg>
+
+<sc-for list="{{pins}}" as="p" hint-placeholder-count="3">
+<button onClick="{{p.pick}}" aria-label="{{p.aria}}" aria-pressed="{{p.on}}" style="position: absolute; left: {{p.x}}; top: {{p.y}}; transform: translate(-50%, -100%); border: none; background: transparent; padding: 0; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; font-family: inherit">
+<span style="height: {{p.size}}; min-width: {{p.size}}; padding: 0 12px; box-sizing: border-box; border-radius: 999px; background: {{p.bg}}; color: {{p.fg}}; font-size: 15px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 1px 2px rgba(29,31,26,.06), 0 8px 20px -8px rgba(29,31,26,.35); white-space: nowrap">{{p.label}}</span>
+<span style="width: 10px; height: 10px; border-radius: 999px; background: {{p.bg}}; border: 2px solid #FFFFFF"></span>
+</button>
+</sc-for>
+
+<div style="position: absolute; left: 12px; bottom: 12px; display: flex; flex-wrap: wrap; gap: 8px; max-width: calc(100% - 24px)">
+<span style="height: 30px; padding: 0 12px; border-radius: 999px; background: #FFFFFF; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 6px"><span style="width: 14px; height: 0; border-top: 2px dashed #5046F5"></span>Lyft Night Owl zone</span>
+<span style="height: 30px; padding: 0 12px; border-radius: 999px; background: #FFFFFF; font-size: 13px; font-weight: 500; display: flex; align-items: center; color: #666666">Map preview · Example</span>
+</div>
+</div>
+
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":900}}'>
+class Component extends DCLogic {
+constructor(p){ super(p); this.state = { sel: 0 }; }
+renderVals() {
+const s = this.state;
+const good = '#2F6B00', bad = '#B42318', ink = '#1D1F1A';
+const H = [
+{ tag:'#1 · Best', name:'Lower Town 2BR', photo:'#B7F3F7', total:'$1,092', x:'47%', y:'43%', watch:'Buses every 30 min after 10 PM',
+  rows:[['Commute','14 min · bus',good],['Night walk','Lit streets',good],['Lyft Night Owl','$4 off',good],['TransLoc pickup','Covered',good],['Laundry','In unit',good],['Quiet','Grad students',good]] },
+{ tag:'#2 · Cheapest', name:'Packard 2BR', photo:'#EEEDFE', total:'$968', x:'66%', y:'90%', watch:'Fees not listed',
+  rows:[['Commute','31 min · bus',bad],['Night walk','Some dark blocks',bad],['Lyft Night Owl','Outside zone',bad],['TransLoc pickup','Not covered',bad],['Laundry','In unit',good],['Quiet','Unknown',ink]] },
+{ tag:'#3 · Closest', name:'North Campus 2BR', photo:'#F5F2EB', total:'$1,240', x:'69%', y:'30%', watch:'$90 over budget',
+  rows:[['Commute','6 min · walk',good],['Night walk','Campus path',good],['Lyft Night Owl','$4 off',good],['TransLoc pickup','Covered',good],['Laundry','In unit',good],['Quiet','Busy weekends',bad]] }
+];
+const h = H[s.sel];
+return {
+h: { ...h, rows: h.rows.map(([label,value,color]) => ({ label, value, color })) },
+tabs: H.map((x,i) => ({ rank: i+1, on: s.sel===i, bg: s.sel===i ? '#FFFFFF' : 'transparent', fg: s.sel===i ? '#1D1F1A' : '#666666', pick: () => this.setState({ sel:i }) })),
+pins: H.map((x,i) => { const on = s.sel===i; return { x: x.x, y: x.y, on, aria: 'Show '+x.name, label: on ? '#'+(i+1)+' · '+x.total : '#'+(i+1), size: on ? '40px' : '34px', bg: on ? '#5046F5' : '#FFFFFF', fg: on ? '#FFFFFF' : '#1D1F1A', pick: () => this.setState({ sel:i }) }; })
+};
+}
+}
+</script>
+</body>
+</html>
