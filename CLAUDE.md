@@ -9,5 +9,5 @@ When you learn something the team should keep (a decision, a new constraint), su
 @context/01-decisions.md
 @context/02-product.md
 @context/10-app-advisor.md
-@context/thinking-partner.md
+@context/thinking-ikmal.md
 @context/thinking-taqi.md
