@@ -42,7 +42,10 @@ export function ruleExtract(text: string): Extracted[] {
   const out: Partial<Record<FieldKey, { value: Extracted['value']; evidence: string | null }>> = {};
   const set = (k: FieldKey, value: Extracted['value'], evidence: string | null) => { if (evidence && value != null && value !== '') out[k] = { value, evidence }; };
 
-  const rentS = find(ss, /\$\s?\d[\d,]{2,}(?:\.\d{2})?\s*(?:\/|per|a)?\s*(?:mo|month)/i) ?? find(ss, /rent[^.]*\$\s?\d[\d,]{2,}/i);
+  const notFee = (s: string) => !/deposit|application fee|amenity fee|admin fee/i.test(s);
+  const rentS = ss.find(s => /\brent|\brents\b/i.test(s) && /\$\s?\d[\d,]{2,}/.test(s) && notFee(s))
+    ?? ss.find(s => /\$\s?\d[\d,]{2,}[^.]{0,40}(?:\bmo\b|month)/i.test(s) && notFee(s))
+    ?? ss.find(s => /\$\s?\d[\d,]{2,}/.test(s) && notFee(s)) ?? null;
   if (rentS) {
     const m = rentS.match(/\$\s?(\d[\d,]{2,})/); if (m) set('rent', num(m[1]), rentS);
     if (/per (?:person|bed|room|tenant)|\/\s?(?:person|bed)|each|individual lease/i.test(rentS)) set('price_basis', 'per_bed', rentS);

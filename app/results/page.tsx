@@ -68,7 +68,7 @@ function Results() {
 
       <Link href="/onboarding?sharpen=1" className="flex items-center gap-3 rounded-[18px] px-5 py-4 no-underline" style={{ background: C.lilac }}>
         <span className="flex flex-1 flex-col gap-0.5"><span className="text-[17px] font-semibold" style={{ color: C.ink }}>Sharpen my matches</span>
-          <span className="text-[15px]" style={{ color: '#3F35E0' }}>{r ? `${Math.round(r.confidence * 100)}% sure now · ` : ''}{optional ? `up to ${Math.min(3, optional + 1)} quick questions could change your #3` : 'up to 3 quick questions'}</span></span>
+          <span className="text-[15px]" style={{ color: '#3F35E0' }}>{r ? `${Math.round(r.confidence * 100)}% sure now · ` : ''}{r && r.confidence >= 0.99 ? 'up to 3 quick questions to pick between your top 3' : optional ? `up to ${Math.min(3, optional + 1)} quick questions could change your #3` : 'up to 3 quick questions'}</span></span>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3F35E0" strokeWidth="1.9" strokeLinecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
       </Link>
 

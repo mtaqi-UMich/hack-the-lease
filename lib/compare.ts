@@ -221,6 +221,12 @@ export function benchNext(p: Profile, shown: string[], removedId: string, reason
     tb = topAndBench(prof, exclude, keep, accept);
     widened = 'We widened your search: budget +10% and dropped extra filters.';
   }
+  if (tb.shown.length < shown.length && (reason === 'too_far' || reason === 'too_expensive')) {
+    // nothing closer / cheaper exists at all: say so and bring the next best match instead
+    tb = topAndBench(profile, exclude, keep);
+    prof = profile;
+    widened = reason === 'too_far' ? 'Nothing closer fits your must-haves, so here’s your next best match.' : 'Nothing cheaper fits your must-haves, so here’s your next best match.';
+  }
   const replacement = tb.shown.find(id => !keep.includes(id)) ?? null;
   const order = new Map(tb.rank.rows.map((r, i) => [r.id, i]));
   const nextShown = [...keep, ...(replacement ? [replacement] : [])].sort((a, b) => (order.get(a) ?? 1e9) - (order.get(b) ?? 1e9));

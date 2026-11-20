@@ -162,7 +162,7 @@ function build() {
       lease_type: leaseType, roommate_matching: roommateMatching,
       lease_start: leaseStart, lease_months: leaseAny ? [8, 12] : [12], applications_open_on: appOpen,
       amenities: { laundry, ac, furnished, private_bath: privateBath, pets, parking, parking_fee: parkingFee, gym_onsite: B.gym },
-      application_fee: pickArr([0, 25, 35, 45, 50]), application_fee_refundable: true, deposit: round5(priceAmount * pickArr([1, 1, 1.25, 1.5])),
+      application_fee: pickArr([0, 25, 35, 45, 50]), application_fee_refundable: true, deposit: Math.floor(priceAmount * pickArr([1, 1, 1.25, 1.5]) / 5) * 5, // never over the 1.5× cap
       screening_criteria_url: `https://example.test/${LL.id}/screening`, asks_criminal_history: false,
       photos: [0, 1, 2, 3, 4].map(k => PHOTOS[(i + k) % PHOTOS.length]), landlord_contact: LL.contact,
       night: { walkMin: Math.round(WALK_MIN_PER_KM * dist.Central), litShare: Math.round(Math.min(0.98, corridor.lit + (r() - 0.5) * 0.15) * 100) / 100, lastBus: corridor.lastBus },

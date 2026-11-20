@@ -1,0 +1,523 @@
+{
+  "generated_at": "2026-11-20T11:00:42.016Z",
+  "n": 1000,
+  "pool": 2500,
+  "tau": 0.95,
+  "max_screens": 5,
+  "listings": 120,
+  "example_data": true,
+  "H1": {
+    "claim": "Full-information best is in our top 3 after ≤5 required screens",
+    "top3": {
+      "p": 0.981,
+      "lo": 0.9705155439877599,
+      "hi": 0.9878031142912823
+    },
+    "pass": true,
+    "bar": "≥ 95%",
+    "top1": {
+      "p": 0.688,
+      "lo": 0.6586108246651736,
+      "hi": 0.7159503141216452
+    },
+    "avg_clicks": 3.326,
+    "click_hist": {
+      "2": 198,
+      "3": 362,
+      "4": 356,
+      "5": 84
+    }
+  },
+  "H2": {
+    "claim": "Up to 3 optional questions raise top-1 without lowering top-3",
+    "top1_before": {
+      "p": 0.688,
+      "lo": 0.6586108246651736,
+      "hi": 0.7159503141216452
+    },
+    "top1_after": {
+      "p": 0.73,
+      "lo": 0.7016420584831382,
+      "hi": 0.7565976325858426
+    },
+    "top3_before": {
+      "p": 0.981,
+      "lo": 0.9705155439877599,
+      "hi": 0.9878031142912823
+    },
+    "top3_after": {
+      "p": 0.996,
+      "lo": 0.9897604436522742,
+      "hi": 0.9984434118703971
+    },
+    "avg_optional_clicks": 0.462,
+    "mcnemar_top1": {
+      "b": 60,
+      "c": 18,
+      "chi2": 21.55128205128205,
+      "p": 0.0000034449232628223065,
+      "exact": false
+    },
+    "pass": true
+  },
+  "H3": {
+    "claim": "Adaptive order beats a fixed order with the same number of screens",
+    "adaptive_top3": {
+      "p": 0.981,
+      "lo": 0.9705155439877599,
+      "hi": 0.9878031142912823
+    },
+    "fixed_top3_same_clicks": {
+      "p": 0.745,
+      "lo": 0.7170834251660178,
+      "hi": 0.7710414631465922
+    },
+    "fixed_top1_same_clicks": {
+      "p": 0.406,
+      "lo": 0.3759787049018423,
+      "hi": 0.43674072570474815
+    },
+    "fixed_top3_5_screens": {
+      "p": 0.993,
+      "lo": 0.98562168445634,
+      "hi": 0.9966051316176056
+    },
+    "mcnemar": {
+      "b": 242,
+      "c": 6,
+      "chi2": 222.68145161290323,
+      "p": 2.352374039014446e-50,
+      "exact": false
+    },
+    "pass": true
+  },
+  "H4": {
+    "claim": "Confidence meter is calibrated",
+    "all_steps": {
+      "bins": [
+        {
+          "lo": 0,
+          "hi": 0.2,
+          "n": 1000,
+          "meanConf": 0.12919999999999815,
+          "hitRate": 0.13
+        },
+        {
+          "lo": 0.2,
+          "hi": 0.4,
+          "n": 463,
+          "meanConf": 0.37555853131749306,
+          "hitRate": 0.3693304535637149
+        },
+        {
+          "lo": 0.4,
+          "hi": 0.6,
+          "n": 510,
+          "meanConf": 0.4674301295969898,
+          "hitRate": 0.5019607843137255
+        },
+        {
+          "lo": 0.6,
+          "hi": 0.8,
+          "n": 736,
+          "meanConf": 0.6982088695798462,
+          "hitRate": 0.6671195652173914
+        },
+        {
+          "lo": 0.8,
+          "hi": 0.9,
+          "n": 409,
+          "meanConf": 0.8422640371167313,
+          "hitRate": 0.8288508557457213
+        },
+        {
+          "lo": 0.9,
+          "hi": 0.95,
+          "n": 227,
+          "meanConf": 0.9279666111600994,
+          "hitRate": 0.9074889867841409
+        },
+        {
+          "lo": 0.95,
+          "hi": 1,
+          "n": 981,
+          "meanConf": 0.988814253563014,
+          "hitRate": 0.981651376146789
+        }
+      ],
+      "ece": 0.014178723202890771
+    },
+    "final_screen": {
+      "bins": [
+        {
+          "lo": 0,
+          "hi": 0.2,
+          "n": 0,
+          "meanConf": null,
+          "hitRate": null
+        },
+        {
+          "lo": 0.2,
+          "hi": 0.4,
+          "n": 0,
+          "meanConf": null,
+          "hitRate": null
+        },
+        {
+          "lo": 0.4,
+          "hi": 0.6,
+          "n": 0,
+          "meanConf": null,
+          "hitRate": null
+        },
+        {
+          "lo": 0.6,
+          "hi": 0.8,
+          "n": 0,
+          "meanConf": null,
+          "hitRate": null
+        },
+        {
+          "lo": 0.8,
+          "hi": 0.9,
+          "n": 8,
+          "meanConf": 0.8767009836140229,
+          "hitRate": 0.875
+        },
+        {
+          "lo": 0.9,
+          "hi": 0.95,
+          "n": 11,
+          "meanConf": 0.9199809791741808,
+          "hitRate": 1
+        },
+        {
+          "lo": 0.95,
+          "hi": 1,
+          "n": 981,
+          "meanConf": 0.988814253563014,
+          "hitRate": 0.981651376146789
+        }
+      ],
+      "ece": 0.00792059984331293
+    },
+    "ece_points": 1.417872320289077,
+    "pass": true
+  },
+  "robustness": [
+    {
+      "name": "Priors +20% (students richer, value time more, more North)",
+      "n": 300,
+      "top3": {
+        "p": 0.97,
+        "lo": 0.9439774605957181,
+        "hi": 0.9841381462680938
+      },
+      "top1": 0.67
+    },
+    {
+      "name": "Priors −20% (students poorer, value time less, more Central)",
+      "n": 300,
+      "top3": {
+        "p": 0.99,
+        "lo": 0.9710165064181933,
+        "hi": 0.9965933815887595
+      },
+      "top1": 0.7566666666666667
+    },
+    {
+      "name": "10% of answers wrong",
+      "n": 300,
+      "top3": {
+        "p": 0.83,
+        "lo": 0.7833857370329974,
+        "hi": 0.8682699018288279
+      },
+      "top1": 0.5933333333333334
+    },
+    {
+      "name": "Different population: North Campus only",
+      "n": 300,
+      "top3": {
+        "p": 0.99,
+        "lo": 0.9710165064181933,
+        "hi": 0.9965933815887595
+      },
+      "top1": 0.8
+    },
+    {
+      "name": "Different population: drivers only",
+      "n": 300,
+      "top3": {
+        "p": 0.9933333333333333,
+        "lo": 0.9760224165389365,
+        "hi": 0.9981698516585397
+      },
+      "top1": 0.8666666666666667
+    }
+  ],
+  "whatIf": [
+    {
+      "label": "Baseline: 2 people, Central, bus, $1,150",
+      "top": [
+        {
+          "id": "L66",
+          "short": "Geddes 2BR",
+          "name": "866 Division Court",
+          "total": 1165,
+          "minutes": 20,
+          "mode": "bus"
+        },
+        {
+          "id": "L25",
+          "short": "South U 2BR",
+          "name": "783 Murfin Residences",
+          "total": 1278,
+          "minutes": 5,
+          "mode": "walk"
+        },
+        {
+          "id": "L28",
+          "short": "Old West Side 2BR",
+          "name": "1438 Maple Lofts",
+          "total": 981,
+          "minutes": 26,
+          "mode": "walk"
+        }
+      ]
+    },
+    {
+      "label": "Budget $1,000",
+      "top": [
+        {
+          "id": "L55",
+          "short": "Lower Town 2BR",
+          "name": "712 Packard Flats",
+          "total": 1086,
+          "minutes": 18,
+          "mode": "bus"
+        },
+        {
+          "id": "L28",
+          "short": "Old West Side 2BR",
+          "name": "1438 Maple Lofts",
+          "total": 981,
+          "minutes": 26,
+          "mode": "walk"
+        },
+        {
+          "id": "L66",
+          "short": "Geddes 2BR",
+          "name": "866 Division Court",
+          "total": 1165,
+          "minutes": 20,
+          "mode": "bus"
+        }
+      ]
+    },
+    {
+      "label": "Budget $1,800",
+      "top": [
+        {
+          "id": "L106",
+          "short": "South U 2BR",
+          "name": "184 Fuller Place",
+          "total": 1537,
+          "minutes": 8,
+          "mode": "walk"
+        },
+        {
+          "id": "L30",
+          "short": "Geddes 2BR",
+          "name": "904 Ann Place",
+          "total": 1379,
+          "minutes": 19,
+          "mode": "bus"
+        },
+        {
+          "id": "L47",
+          "short": "Water Hill 2BR",
+          "name": "1830 Geddes House",
+          "total": 1355,
+          "minutes": 30,
+          "mode": "bus"
+        }
+      ]
+    },
+    {
+      "label": "Classes on North Campus",
+      "top": [
+        {
+          "id": "L8",
+          "short": "Northwood 2BR",
+          "name": "1325 Murfin Residences",
+          "total": 1172,
+          "minutes": 10,
+          "mode": "walk"
+        },
+        {
+          "id": "L66",
+          "short": "Geddes 2BR",
+          "name": "866 Division Court",
+          "total": 1165,
+          "minutes": 23,
+          "mode": "bus"
+        },
+        {
+          "id": "L9",
+          "short": "Plymouth Rd 2BR",
+          "name": "347 Hill Lofts",
+          "total": 1088,
+          "minutes": 23,
+          "mode": "bus"
+        }
+      ]
+    },
+    {
+      "label": "Classes on Medical Campus",
+      "top": [
+        {
+          "id": "L115",
+          "short": "Geddes 2BR",
+          "name": "296 Washtenaw Place",
+          "total": 1108,
+          "minutes": 17,
+          "mode": "walk"
+        },
+        {
+          "id": "L66",
+          "short": "Geddes 2BR",
+          "name": "866 Division Court",
+          "total": 1165,
+          "minutes": 20,
+          "mode": "bus"
+        },
+        {
+          "id": "L8",
+          "short": "Northwood 2BR",
+          "name": "1325 Murfin Residences",
+          "total": 1172,
+          "minutes": 16,
+          "mode": "bus"
+        }
+      ]
+    },
+    {
+      "label": "Walks instead of bus",
+      "top": [
+        {
+          "id": "L25",
+          "short": "South U 2BR",
+          "name": "783 Murfin Residences",
+          "total": 1278,
+          "minutes": 5,
+          "mode": "walk"
+        },
+        {
+          "id": "L29",
+          "short": "Burns Park 2BR",
+          "name": "1884 Kingsley Place",
+          "total": 1189,
+          "minutes": 20,
+          "mode": "walk"
+        },
+        {
+          "id": "L28",
+          "short": "Old West Side 2BR",
+          "name": "1438 Maple Lofts",
+          "total": 981,
+          "minutes": 26,
+          "mode": "walk"
+        }
+      ]
+    },
+    {
+      "label": "In-unit laundry is a must",
+      "top": [
+        {
+          "id": "L25",
+          "short": "South U 2BR",
+          "name": "783 Murfin Residences",
+          "total": 1278,
+          "minutes": 5,
+          "mode": "walk"
+        },
+        {
+          "id": "L55",
+          "short": "Lower Town 2BR",
+          "name": "712 Packard Flats",
+          "total": 1086,
+          "minutes": 18,
+          "mode": "bus"
+        },
+        {
+          "id": "L28",
+          "short": "Old West Side 2BR",
+          "name": "1438 Maple Lofts",
+          "total": 981,
+          "minutes": 26,
+          "mode": "walk"
+        }
+      ]
+    },
+    {
+      "label": "Values time highly (≥ $40/h)",
+      "top": [
+        {
+          "id": "L25",
+          "short": "South U 2BR",
+          "name": "783 Murfin Residences",
+          "total": 1278,
+          "minutes": 5,
+          "mode": "walk"
+        },
+        {
+          "id": "L66",
+          "short": "Geddes 2BR",
+          "name": "866 Division Court",
+          "total": 1165,
+          "minutes": 20,
+          "mode": "bus"
+        },
+        {
+          "id": "L55",
+          "short": "Lower Town 2BR",
+          "name": "712 Packard Flats",
+          "total": 1086,
+          "minutes": 18,
+          "mode": "bus"
+        }
+      ]
+    },
+    {
+      "label": "Match me with roommates",
+      "top": [
+        {
+          "id": "L73",
+          "short": "South U 3BR",
+          "name": "1198 Kingsley Place",
+          "total": 1092,
+          "minutes": 10,
+          "mode": "walk"
+        },
+        {
+          "id": "L37",
+          "short": "South U 4BR",
+          "name": "1667 Huron Court",
+          "total": 1205,
+          "minutes": 14,
+          "mode": "walk"
+        },
+        {
+          "id": "L112",
+          "short": "Downtown 5BR",
+          "name": "1673 Traver Terrace",
+          "total": 884,
+          "minutes": 19,
+          "mode": "bus"
+        }
+      ]
+    }
+  ],
+  "runtime_s": 250.532
+}
