@@ -3,7 +3,7 @@
 // save it to the student's personal database on this device, then rank everything saved and open the best on /compare.
 // If a site shows a "prove you're human" check, we stop, bring that tab forward and ask the student to complete it.
 import type { Found, ReadResult, Source, Unit } from './adapters';
-import { toExtracted } from './read';
+import { guessBasis, toExtracted } from './read';
 import type { PageSnapshot } from './snapshot';
 import { score, type Scored } from './score';
 import { analyse, challengeOf, labelOf, openAndLoad, scanFields, snapshotTab, toSaved, waitForHuman } from './pipeline';
@@ -23,50 +23,58 @@ interface ScanState { from: string; links: string[]; done: number; saved: number
 interface State {
   snap?: PageSnapshot; read?: ReadResult; coord?: [number, number]; scored?: Scored; ms?: number; aiNote?: string; picked?: Unit;
   view: 'page' | 'saved' | 'scan'; busy?: string; error?: string; challenge?: Challenge; links?: string[]; scan?: ScanState;
+  tabId?: number; needsAccess?: boolean;
 }
+const ALL_SITES = ['https://*/*', 'http://*/*'];
 let st: State = { view: 'page' };
 let store: Store;
 let cancelled = false;
 
-const SRC_LABEL: Record<Source, string> = { zillow: 'Zillow page data', 'apartments.com': 'Apartments.com page data', 'structured data': 'Page structured data', 'page meta': 'Page tags', 'page text': 'Page text', AI: 'Read by AI', you: 'You' };
+const SRC_LABEL: Record<Source, string> = { zillow: 'Zillow page data', 'apartments.com': 'Apartments.com page data', 'structured data': 'Page structured data', 'page meta': 'Page tags', 'page text': 'Page text', AI: 'Read by AI', you: 'You', guess: 'Our guess' };
 
 async function activeTab() { const [t] = await chrome.tabs.query({ active: true, currentWindow: true }); return t; }
 
-/** Read the active tab. activeTab covers the toolbar click; for a later "Read this page" we ask once for that site. */
+/** Read the active tab. The toolbar click grants activeTab for that tab. For any other tab Chrome hides the URL and
+ *  blocks injection until the student allows it once (the "Allow" button — permissions.request needs a direct click). */
 async function readPage() {
-  const t0 = performance.now();
   cancelled = false;
-  st = { view: 'page', busy: 'Reading this page…' }; render();
   const tab = await activeTab();
-  if (!tab?.id || !/^https?:/.test(tab.url ?? '')) { st = { view: 'page', error: 'Open a listing page, then click Read this page.' }; return render(); }
+  // tab.url is only visible when we may read the tab; undefined ≠ "not a web page", so only reject a URL we can see
+  if (!tab?.id || (tab.url && !/^https?:/.test(tab.url))) { st = { view: 'page', error: 'Open a listing page, then click Read this page.' }; return render(); }
+  st = { view: 'page', busy: 'Reading this page…', tabId: tab.id }; render();
+  try { await readTab(tab.id); }
+  catch { st = { view: 'page', tabId: tab.id, error: 'Couldn’t read this page. Reload it, then click Read this page again.' }; render(); }
+}
+
+async function readTab(tabId: number) {
+  const t0 = performance.now();
   let snap: PageSnapshot;
-  try { snap = await snapshotTab(tab.id); }
-  catch {
-    const origin = new URL(tab.url!).origin + '/*';
-    const ok = await chrome.permissions.request({ origins: [origin] }).catch(() => false);
-    if (!ok) { st = { view: 'page', error: 'Chrome needs your OK to read this page. Click the Hack the Lease button in the toolbar, or allow this site.' }; return render(); }
-    snap = await snapshotTab(tab.id);
-  }
+  try { snap = await snapshotTab(tabId); }
+  catch { st = { view: 'page', tabId, needsAccess: true }; return render(); }
   const ch = challengeOf(snap);
   if (ch) {
-    st = { view: 'page', challenge: ch }; render();
-    const real = await waitForHuman(tab.id, () => cancelled);
-    if (!real) { st = { view: 'page', error: cancelled ? 'Stopped.' : 'The check wasn’t completed. Finish it in the page, then click Read this page.' }; return render(); }
+    st = { view: 'page', tabId, challenge: ch }; render();
+    const real = await waitForHuman(tabId, () => cancelled);
+    if (!real) { st = { view: 'page', tabId, error: cancelled ? 'Stopped.' : 'The check wasn’t completed. Finish it in the page, then click Read this page.' }; return render(); }
     snap = real;
+    st = { view: 'page', tabId, busy: 'Reading this page…' }; render(); // check done — stop showing it
   }
   const a = await analyse(snap, store, s => { st = { ...st, busy: s }; render(); });
   const links = pickListingLinks(snap.url, snap.links ?? [], 20);
-  st = { view: 'page', snap, read: a.read, coord: a.coord, aiNote: a.aiNote, links, ms: Math.round(performance.now() - t0) };
+  st = { view: 'page', snap, read: a.read, coord: a.coord, aiNote: a.aiNote, links, tabId, ms: Math.round(performance.now() - t0) };
   rescore();
 }
 
-function currentFields(): Extracted[] {
+/** The facts we score: page facts, the unit the student picked, their answers, and a preselected price basis. */
+function currentFound(): ReadResult['fields'] {
   const f = { ...st.read!.fields };
   if (st.picked) { f.rent = { value: st.picked.rent, evidence: `You picked: ${st.picked.label}`, source: 'you' }; f.beds = { value: st.picked.beds, evidence: `You picked: ${st.picked.label}`, source: 'you' };
-    if (st.picked.basis) f.price_basis = { value: st.picked.basis, evidence: st.picked.evidence ?? st.picked.label, source: st.snap?.host.includes('apartments.com') ? 'apartments.com' : 'page text' };
+    if (st.picked.basis && f.price_basis?.source !== 'you') f.price_basis = { value: st.picked.basis, evidence: st.picked.evidence ?? st.picked.label, source: st.snap?.host.includes('apartments.com') ? 'apartments.com' : 'page text' };
     if (st.picked.baths != null) f.baths = { value: st.picked.baths, evidence: `You picked: ${st.picked.label}`, source: 'you' }; }
-  return toExtracted(f);
+  if (!f.price_basis && f.rent && f.beds) f.price_basis = guessBasis(Number(f.rent.value), Number(f.beds.value), st.snap?.host ?? '');
+  return f;
 }
+const currentFields = (): Extracted[] => toExtracted(currentFound());
 const labelFor = () => st.read && st.snap ? labelOf(st.read, st.snap.host, st.picked?.beds) : 'Place';
 
 function rescore() { if (!st.read) return render(); st.scored = score(currentFields(), st.coord, store.profile ?? {}, store.saved, labelFor()); render(); }
@@ -86,7 +94,9 @@ async function openCompare(ids: string[]) {
 
 async function saveAndCompare() {
   if (!st.read || !st.snap || !st.scored?.listing) return;
-  const place = await toSaved(st.snap, { read: st.read, coord: st.coord, aiNote: '' }, currentFields(), labelFor());
+  // save what the student sees: picked unit, their answers and the preselected price basis, each with its real source
+  const found = currentFound();
+  const place = await toSaved(st.snap, { read: { ...st.read, fields: found }, coord: st.coord, aiNote: '' }, toExtracted(found), labelFor());
   store.saved = await savePlace(place);
   await openCompare([place.id]);
   st.busy = undefined; render();
@@ -120,7 +130,7 @@ async function scan(n: number) {
         snap = real;
       }
       const a = await analyse(snap, store);
-      const { fields, beds } = scanFields(a.read, group);
+      const { fields, beds } = scanFields(a.read, group, snap.host);
       const label = labelOf(a.read, snap.host, beds);
       const scored = score(fields, a.coord, store.profile ?? {}, store.saved, label);
       if (!scored.listing) { s.skipped++; s.log.push(`No rent or bedrooms on the page: ${label}`); }
@@ -167,6 +177,10 @@ function render() {
   if (st.challenge) return void (app().innerHTML = `${head}${challengeBox(st.challenge)}`);
   if (st.busy) return void (app().innerHTML = `${head}<div class="busy"><span class="spin"></span>${esc(st.busy)}</div>`);
   if (st.error) return void (app().innerHTML = `${head}<p class="err">${esc(st.error)}</p>`);
+  if (st.needsAccess) return void (app().innerHTML = `${head}<section><b>Chrome needs your OK to read this tab</b>
+    <p class="muted">Allow it once and <b>Read this page</b> works on any listing site. We only read a page when you click.</p>
+    <button class="primary" data-act="allow">Allow reading listing pages</button>
+    <p class="muted">Or click the Hack the Lease icon in the toolbar while you’re on the listing.</p></section>`);
   if (!st.read || !st.scored) return void (app().innerHTML = `${head}<div class="empty"><p>Open any rental listing — Zillow, Apartments.com, a landlord’s own site — and click <b>Read this page</b>.</p><p class="muted">On a search-results page you can scan several listings at once.</p></div>`);
   const { read, scored: s, snap } = st;
   const f = read.fields;
@@ -176,7 +190,10 @@ function render() {
   const srcChips = read.sources.map(x => `<span class="chip">${esc(SRC_LABEL[x])}</span>`).join('');
   const units = read.units.length > 1 && (!f.rent || st.picked) ? `<section><h3>Which unit?</h3><p class="muted">This page lists several floor plans. Pick the one you’d rent.</p><div class="chips">${read.units.map((u, i) => `<button class="pick ${st.picked === u ? 'on' : ''}" data-unit="${i}">${esc(u.label)}</button>`).join('')}</div></section>` : '';
   const qs = s.questions.map(q => `<section class="ask"><b>${esc(q.text)}</b><div class="chips">${q.options.map(o => `<button class="pick" data-q="${esc(q.key)}" data-v="${esc(o)}">${esc(o)}</button>`).join('')}</div></section>`).join('');
-  const basisSrc = f.price_basis ? `<p class="ev">“${esc(f.price_basis.evidence)}”</p>` : '';
+  // Per person vs whole place: always preselected once rent + beds are known, always one tap to flip
+  const pb = c ? currentFound().price_basis : undefined;
+  const basisSrc = pb ? `<div class="basis"><span class="muted">Rent is quoted</span><div class="chips">${(['Per person', 'Whole place'] as const).map(o => `<button class="pick ${(o === 'Per person') === (pb.value === 'per_bed') ? 'on' : ''}" data-q="price_basis" data-v="${o}">${o}</button>`).join('')}</div>
+    <p class="ev">${pb.source === 'guess' ? esc(pb.evidence) + ' — tap to change.' : `${esc(SRC_LABEL[pb.source])}: “${esc(pb.evidence)}”`}</p></div>` : '';
   const costRows = c ? c.cost.lines.map(l => `<div class="row"><span>${esc(l.label)}</span><span class="v">${prov(l.provenance)}${l.amount == null ? 'Unknown — ask' : money(l.amount)}</span></div>`).join('') : '';
   const mh = c ? ([['Commute', s.commuteKnown ? `${c.commute.minutes} min · ${c.commute.label}` : (st.coord ? 'Unknown — outside the area we cover' : 'Unknown — no address found'), s.commuteKnown ? (c.commute.minutes <= 15 ? 'good' : c.commute.minutes >= 30 ? 'bad' : '') : ''],
     ['Night walk', s.commuteKnown ? c.mustHaves.night.main : 'Unknown', s.commuteKnown ? c.mustHaves.night.tone : ''], ['Lyft Pass', s.commuteKnown ? c.mustHaves.owl.main : 'Unknown', s.commuteKnown ? c.mustHaves.owl.tone : ''],
@@ -194,8 +211,8 @@ function render() {
     <div class="chips src">${srcChips}${st.ms != null ? `<span class="chip">${(st.ms / 1000).toFixed(1)} s</span>` : ''}</div>
     ${st.aiNote ? `<p class="note">${esc(st.aiNote)}</p>` : ''}
     ${units}${qs}
-    ${c ? `<section><h3>True monthly cost per person</h3>${costRows}<div class="row total"><span>Total</span><span class="v">${money(c.total)}</span></div>
-      <p class="muted">${esc(c.leaseBadge)}</p>${basisSrc}</section>
+    ${c ? `<section><h3>True monthly cost per person</h3>${basisSrc}${costRows}<div class="row total"><span>Total</span><span class="v">${money(c.total)}</span></div>
+      <p class="muted">${esc(c.leaseBadge)}</p></section>
       <section><h3>Your must-haves</h3>${mh}</section>${rank}` : `<section><p class="err">${esc(s.rank.reason)}</p>
       <p class="muted">The page doesn’t state it. Know it from the landlord? Type it — it’s marked “You”.</p>
       <div class="chips">${!f.rent ? '<input id="in-rent" inputmode="numeric" placeholder="Rent $ / month" />' : ''}${!f.beds && !st.picked ? '<input id="in-beds" inputmode="numeric" placeholder="Bedrooms" />' : ''}<button class="pick" data-act="typed">Use these</button></div></section>`}
@@ -251,6 +268,11 @@ document.addEventListener('click', async e => {
   if (a === 'read') return readPage();
   if (a === 'stop') { cancelled = true; return; }
   if (a === 'best') return openCompare(bestIds(rankSaved(store.profile ?? {}, store.saved)));
+  if (a === 'allow') { // permissions.request must be the first call in the click, before any await
+    const ok = await chrome.permissions.request({ origins: ALL_SITES }).catch(() => false);
+    if (ok) return readPage();
+    st = { view: 'page', error: 'Not allowed — click the Hack the Lease icon in the toolbar while on the listing instead.' }; return render();
+  }
   if (a === 'save') { st.busy = 'Saving…'; render(); return saveAndCompare(); }
   if (a === 'copy') { await navigator.clipboard.writeText(($('#asktext') as HTMLTextAreaElement).value); t.textContent = 'Copied ✓'; return; }
   if (a === 'typed') {
@@ -274,6 +296,10 @@ document.addEventListener('change', async e => {
   await save({ showPill: el.checked }); store.showPill = el.checked;
   await chrome.runtime.sendMessage({ type: 'SYNC_PILL', show: el.checked });
 });
+// A result belongs to one page: switching tabs or navigating clears it, so the panel never shows another page's numbers.
+const clearIfStale = (tabId: number) => { if (st.view === 'page' && !st.busy && (st.read || st.error || st.needsAccess) && tabId === st.tabId) { st = { view: 'page' }; render(); } };
+chrome.tabs.onActivated.addListener(({ tabId }) => { if (st.tabId != null && tabId !== st.tabId) clearIfStale(st.tabId); });
+chrome.tabs.onUpdated.addListener((tabId, info) => { if (info.status === 'loading') clearIfStale(tabId); });
 chrome.runtime.onMessage.addListener(async (m: { type?: string }) => {
   if (m?.type === 'READ_NOW') readPage();
   if (m?.type === 'PROFILE_UPDATED') { store = await load(); if (st.read) rescore(); else render(); }

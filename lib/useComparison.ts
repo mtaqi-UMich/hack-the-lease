@@ -17,20 +17,21 @@ export function useComparison() {
   // places saved by the browser extension (read from the extension at runtime; null = not loaded yet)
   const [saved, setSaved] = useState<SavedPlace[] | null>(null);
   useEffect(() => { if (!hydrated) return; getSaved().then(setSaved).catch(() => setSaved([])); }, [hydrated]);
-  // /compare?add=X-… (from the extension's "Save & compare"): put that place into a column once
+  // /compare?add=X-… (from the extension's "Save & compare"): never silently replace a column — hand the new place to
+  // the "Choose what to compare" picker, already ticked, and let the student decide what it sits next to.
+  const [pendingAdd, setPendingAdd] = useState<string | null>(null);
   useEffect(() => {
     if (!saved || typeof window === 'undefined') return;
     // ?add=X-a or ?add=X-a,X-b,X-c ("Compare my best 3" from the extension)
     const adds = (new URLSearchParams(window.location.search).get('add') ?? '').split(',').filter(id => saved.some(p => p.id === id));
     if (!adds.length) return;
     window.history.replaceState(null, '', window.location.pathname);
-    setState(s => {
-      const n = s.slots ?? 3;
-      if (adds.length >= 2) { const shown = adds.slice(0, n); return { shown, slots: Math.max(2, shown.length) as 2 | 3, seen: s.seen.filter(x => !shown.includes(x)) }; }
-      const add = adds[0];
-      const cur = s.shown.filter(id => id !== add).slice(0, n); if (cur.length >= n) cur[n - 1] = add; else cur.push(add);
-      return { shown: cur, seen: s.seen.filter(x => x !== add) };
-    });
+    // several at once = the student already chose (extension's "Compare my best 3") → straight into the table
+    if (adds.length >= 2) {
+      setState(s => { const shown = adds.slice(0, s.slots ?? 3); return { shown, slots: Math.max(2, shown.length) as 2 | 3, seen: s.seen.filter(x => !shown.includes(x)) }; });
+      return;
+    }
+    setPendingAdd(adds[0]);
   }, [saved]);
 
   useEffect(() => {
@@ -60,7 +61,14 @@ export function useComparison() {
   const bench = (top?.bench_cards ?? []).filter(b => !shown.includes(b.id) && !seen.includes(b.id));
   /** "From zillow.com · private to you" for extension places, "Your listing" for /bring */
   const outsideTag = (id: string) => id === BROUGHT_ID ? 'Your listing' : saved?.find(p => p.id === id) ? `From ${saved.find(p => p.id === id)!.sourceHost} · private to you` : null;
-  return { r, cards: r?.cards ?? [], bench, slots, profile, shown, seen, brought, outsideTag };
+  /** The listing page an extension place was saved from (for "Apply on …"). */
+  const sourceOf = (id: string) => { const p = saved?.find(x => x.id === id); return p ? { url: p.sourceUrl, host: p.sourceHost } : null; };
+  return { r, top, cards: r?.cards ?? [], bench, slots, profile, shown, seen, brought, saved: saved ?? [], outsideTag, sourceOf, pendingAdd, clearPendingAdd: () => setPendingAdd(null) };
+}
+
+/** Put exactly these places (2 or 3) side by side. */
+export function chooseCompared(ids: string[]) {
+  setState(s => ({ shown: ids, slots: (ids.length >= 3 ? 3 : 2) as 2 | 3, seen: s.seen.filter(x => !ids.includes(x)) }));
 }
 
 /** Set how many places to compare. Going 3 → 2 drops the last one (it can come back). */

@@ -30,8 +30,12 @@ export function sanitize(raw: string): { text: string; redactions: number } {
   return { text, redactions: n };
 }
 
+/** Tab bars / section menus on listing sites ("Required Fees Pets Parking") are labels, not statements about the place. */
+const NAV_WORDS = /\b(?:Fees|Pets|Parking|Amenities|Reviews|Pricing|Policies|Utilities|Overview|Location|Details|Floor Plans|Contact|Photos|Map)\b/g;
+const isNavLabel = (s: string) => /^(?:[A-Z][\w&/'-]*\s*){2,8}$/.test(s) && (s.match(NAV_WORDS) ?? []).length >= 2;
+
 export function sentences(text: string): string[] {
-  return text.split(/(?<=[.!?])\s+|\n+/).map(s => s.trim()).filter(Boolean);
+  return text.split(/(?<=[.!?])\s+|\n+/).map(s => s.trim()).filter(s => s && !isNavLabel(s));
 }
 const find = (ss: string[], re: RegExp) => ss.find(s => re.test(s)) ?? null;
 const num = (s: string) => Number(s.replace(/[,$\s]/g, ''));
@@ -42,7 +46,8 @@ export function ruleExtract(text: string): Extracted[] {
   const out: Partial<Record<FieldKey, { value: Extracted['value']; evidence: string | null }>> = {};
   const set = (k: FieldKey, value: Extracted['value'], evidence: string | null) => { if (evidence && value != null && value !== '') out[k] = { value, evidence }; };
 
-  const notFee = (s: string) => !/deposit|application fee|amenity fee|admin fee/i.test(s);
+  // a price range ("$724 - $2,398") spans several units — it is not this place's rent
+  const notFee = (s: string) => !/deposit|application fee|amenity fee|admin fee/i.test(s) && !/\$\s?\d[\d,]{2,}\s*[–—-]\s*\$/.test(s);
   const rentS = ss.find(s => /\brent|\brents\b/i.test(s) && /\$\s?\d[\d,]{2,}/.test(s) && notFee(s))
     ?? ss.find(s => /\$\s?\d[\d,]{2,}[^.]{0,40}(?:\bmo\b|month)/i.test(s) && notFee(s))
     ?? ss.find(s => /\$\s?\d[\d,]{2,}/.test(s) && notFee(s)) ?? null;
@@ -55,20 +60,23 @@ export function ruleExtract(text: string): Extracted[] {
   if (bedS) { const m = bedS.match(/(\d|one|two|three|four|five)[\s-]*(?:bed(?:room)?s?|br\b)/i); const words: Record<string, number> = { one: 1, two: 2, three: 3, four: 4, five: 5 }; set('beds', m ? (words[m[1].toLowerCase()] ?? Number(m[1])) : 1, bedS); }
   const bathS = find(ss, /(\d(?:\.5)?)\s*(?:bath(?:room)?s?|ba\b)/i);
   if (bathS) set('baths', Number(bathS.match(/(\d(?:\.5)?)\s*(?:bath|ba\b)/i)![1]), bathS);
-  const sqftS = find(ss, /(\d[\d,]{2,})\s*(?:sq\.?\s?ft|square feet|sf\b)/i);
-  if (sqftS) set('sqft', num(sqftS.match(/(\d[\d,]{2,})\s*(?:sq|square|sf)/i)![1]), sqftS);
+  const sqftS = ss.find(s => /(\d[\d,]{2,})\s*(?:sq\.?\s?ft|square feet|sf\b|ft2|ft²)/i.test(s) && !/\d\s*[–—-]\s*\d[\d,]*\s*(?:sq|square|sf\b|ft)/i.test(s)) ?? null;
+  if (sqftS) set('sqft', num(sqftS.match(/(\d[\d,]{2,})\s*(?:sq|square|sf|ft)/i)![1]), sqftS);
   const addrS = find(ss, /\d{2,5}\s+[A-Z][a-z]+(?:\s[A-Z][a-z]+)*\s(?:St|Street|Ave|Avenue|Rd|Road|Blvd|Dr|Drive|Ct|Court|Pl|Place|Way|Ln|Lane)\b/);
   if (addrS) set('address', addrS.match(/\d{2,5}\s+[A-Z][a-z]+(?:\s[A-Z][a-z]+)*\s(?:St|Street|Ave|Avenue|Rd|Road|Blvd|Dr|Drive|Ct|Court|Pl|Place|Way|Ln|Lane)\b\.?/)![0], addrS);
   const utilS = find(ss, /(?:heat|water|trash|internet|wifi|electric|gas|utilities)[^.]*(?:included|includes|paid by landlord)|(?:includes?|included)[^.]*(?:heat|water|trash|internet|wifi|electric|gas)/i);
   if (utilS) {
     // only the clause that says "included" counts; "tenants pay electric" is not included
     const clause = utilS.split(/;|\bbut\b|\btenants? pays?\b|\byou pay\b/i).find(c => /includ|paid by landlord/i.test(c)) ?? '';
-    set('utilities_included', ['heat', 'water', 'trash', 'internet', 'electric', 'gas'].filter(u => new RegExp(u === 'internet' ? 'internet|wi-?fi' : u, 'i').test(clause) && !new RegExp(`${u}[^.;]*not included`, 'i').test(clause)), utilS);
+    const list = ['heat', 'water', 'trash', 'internet', 'electric', 'gas'].filter(u => new RegExp(u === 'internet' ? 'internet|wi-?fi' : u, 'i').test(clause) && !new RegExp(`${u}[^.;]*not included`, 'i').test(clause));
+    // a bare "Utilities Included" heading names nothing — only an explicit "not included" means none
+    if (list.length || /not included|no utilities|tenants? pays? all/i.test(utilS)) set('utilities_included', list, utilS);
   }
-  const feeS = find(ss, /(?:amenity|admin|technology|tech|trash|service|community)\s+fee/i);
-  if (feeS) { const m = feeS.match(/\$\s?(\d[\d,]*)/); set('fees', m ? `${feeS.match(/(amenity|admin|technology|tech|trash|service|community)\s+fee/i)![0]} $${num(m[1])}` : feeS.match(/\w+\s+fee/i)![0], feeS); }
+  const FEE = /(?:amenity|admin|technology|tech|trash|service|community)\s+fees?\b/i;
+  const feeS = find(ss, FEE);
+  if (feeS) { const m = feeS.match(/\$\s?(\d[\d,]*)/); set('fees', m ? `${feeS.match(FEE)![0]} $${num(m[1])}` : feeS.match(FEE)![0], feeS); }
   const laundryS = find(ss, /laundry|washer|w\/d\b/i);
-  if (laundryS) set('laundry', /in[- ]unit|in the unit|washer and dryer in|w\/d in unit/i.test(laundryS) ? 'in_unit' : /coin|shared|on[- ]site|building|basement/i.test(laundryS) ? 'in_building' : /no laundry/i.test(laundryS) ? 'none' : 'mentioned', laundryS);
+  if (laundryS) set('laundry', /in[- ]unit|in the unit|washer and dryer in|w\/d in unit/i.test(laundryS) ? 'in_unit' : /coin|shared|on[- ]site|building|basement|facilit/i.test(laundryS) ? 'in_building' : /no laundry/i.test(laundryS) ? 'none' : 'mentioned', laundryS);
   const parkS = find(ss, /parking|garage|driveway/i);
   if (parkS) set('parking', /no parking|street parking only/i.test(parkS) ? false : true, parkS);
   const petS = find(ss, /\b(?:pets?|dogs?|cats?)\b/i);
@@ -79,8 +87,12 @@ export function ruleExtract(text: string): Extracted[] {
   if (leaseS) set('lease_start', leaseS.match(/(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s*\d{0,2}(?:,?\s*20\d\d)?/i)![0].trim(), leaseS);
   const appS = find(ss, /application fee/i);
   if (appS) { const m = appS.match(/application fee[^$]{0,30}\$\s?(\d[\d,]*)/i); if (m) set('application_fee', num(m[1]), appS); }
-  const depS = find(ss, /deposit/i);
-  if (depS) { const m = depS.match(/deposit[^$]{0,30}\$\s?(\d[\d,]*)/i); if (m) set('deposit', num(m[1]), depS); }
+  const depI = ss.findIndex(s => /deposit/i.test(s) && !/(?:pet|dog|cat|animal)s?\s+deposit/i.test(s)); // a pet deposit isn't the security deposit
+  if (depI >= 0) {
+    // label and amount are often on separate lines ("Security deposit" / "$6,000")
+    const depS = /deposit[^$]{0,30}\$/i.test(ss[depI]) ? ss[depI] : /^\$\s?\d[\d,]*$/.test(ss[depI + 1] ?? '') ? `${ss[depI]} ${ss[depI + 1]}` : ss[depI];
+    const m = depS.match(/deposit[^$]{0,30}\$\s?(\d[\d,]*)/i); if (m) set('deposit', num(m[1]), depS);
+  }
 
   return FIELD_KEYS.map(k => out[k] ? { key: k, label: FIELD_LABELS[k], value: out[k]!.value, evidence: out[k]!.evidence, status: 'Listed' as const } : { key: k, label: FIELD_LABELS[k], value: null, evidence: null, status: 'Unknown' as const });
 }

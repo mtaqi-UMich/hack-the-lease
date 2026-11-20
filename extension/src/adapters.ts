@@ -4,7 +4,7 @@
 import type { Extracted, FieldKey } from '../../lib/extract';
 import type { PageSnapshot } from './snapshot';
 
-export type Source = 'zillow' | 'apartments.com' | 'structured data' | 'page meta' | 'page text' | 'AI' | 'you';
+export type Source = 'zillow' | 'apartments.com' | 'structured data' | 'page meta' | 'page text' | 'AI' | 'you' | 'guess';
 export interface Found { value: Extracted['value']; evidence: string; source: Source }
 export interface Unit { label: string; rent: number; beds: number; baths?: number; sqft?: number; basis?: 'per_bed' | 'per_unit'; evidence?: string }
 export interface ReadResult {
@@ -100,8 +100,8 @@ export function readJsonLd(blocks: string[], source: Source = 'structured data')
 
 // ---------- Zillow: __NEXT_DATA__ / gdpClientCache property object, building floor plans ----------
 export function readZillow(s: PageSnapshot): Pick<ReadResult, 'fields' | 'coord' | 'units'> {
-  const fields: ReadResult['fields'] = {}; let coord: [number, number] | undefined; const units: Unit[] = [];
-  const roots = [s.nextData, ...s.embedded].filter(Boolean).map(x => tryJSON(x!)).filter(Boolean);
+  const fields: ReadResult['fields'] = {}; let coord: [number, number] | undefined; const units: Unit[] = []; const seen = new Set<string>();
+  const roots = [...new Set([s.nextData, ...s.embedded])].filter(Boolean).map(x => tryJSON(x!)).filter(Boolean);
   for (const root of roots) walk(root, o => {
     // a single rental: { bedrooms, bathrooms, price, address{...}, latitude, longitude, livingArea, resoFacts{...} }
     if (num(o.bedrooms) != null && (num(o.price) != null || num(o.unformattedPrice) != null) && (o.address || o.streetAddress)) {
@@ -127,12 +127,15 @@ export function readZillow(s: PageSnapshot): Pick<ReadResult, 'fields' | 'coord'
       for (const u of arr as Record<string, unknown>[]) {
         const beds = num(u.beds ?? u.bedrooms); const rent = num(u.price ?? u.minPrice ?? u.unformattedPrice);
         if (beds == null || rent == null || rent < 300) continue;
+        // Zillow repeats the same plan under floorPlans, ungroupedUnits and per-unit lists
+        const key = `${beds}-${rent}-${num(u.baths ?? u.bathrooms) ?? ''}`; if (seen.has(key) || units.length >= 20) continue; seen.add(key);
         units.push({ label: `${beds === 0 ? 'Studio' : `${beds} bed`}${num(u.baths) != null ? ` · ${num(u.baths)} bath` : ''} · $${rent.toLocaleString('en-US')}`, rent, beds, baths: num(u.baths ?? u.bathrooms) ?? undefined, sqft: num(u.sqft ?? u.minSqft) ?? undefined });
       }
     }
     if (!coord && num(o.latitude) != null && num(o.longitude) != null && (o.buildingName || o.address)) coord = [num(o.latitude)!, num(o.longitude)!];
     if (!fields.address && o.buildingName && o.address) { const a = addressOf(o.address); if (a) setF(fields, 'address', a, quote('address', a), 'zillow'); }
   });
+  units.sort((a, b) => a.beds - b.beds || a.rent - b.rent);
   return { fields, coord, units };
 }
 
@@ -140,7 +143,18 @@ export function readZillow(s: PageSnapshot): Pick<ReadResult, 'fields' | 'coord'
 /** Listing pages end with neighbourhood averages, "nearby" and "similar" listings. Their prices are NOT this place's
  *  prices, so everything from the first such heading on is dropped before any text is read (by rules or by AI). */
 const NOT_THIS_LISTING = /\n[ \t]*(?:Average (?:Prices|Rents?)(?: by Area)?|Compare neighborhood|Nearby (?:Apartments|Rentals|Homes|Properties|Listings)|Similar (?:Listings|Rentals|Homes|Properties|Apartments)|You (?:May|might) Also Like|Other (?:rentals|listings|properties) nearby|Explore (?:nearby|similar)|Recently viewed|More rentals (?:near|in))\b/i;
-export function listingText(text: string): string { const m = text.match(NOT_THIS_LISTING); return m && m.index != null && m.index > 200 ? text.slice(0, m.index) : text; }
+/** Zillow puts its "Nearby apartments" carousel mid-page, BEFORE the cost calculator (rent, deposit, fees) — so a
+ *  block with a clear end marker is cut out, and only an open-ended one cuts the rest of the page. */
+const CAROUSEL_END = /\n(?:Skip to the beginning of the carousel\s*\n\s*Skip carousel|Listing order may reflect[^\n]*)\n/i;
+export function listingText(text: string): string {
+  for (let i = 0; i < 5; i++) {
+    const m = text.match(NOT_THIS_LISTING); if (!m || m.index == null || m.index <= 200) return text;
+    const rest = text.slice(m.index); const end = rest.match(CAROUSEL_END);
+    if (end?.index == null || end.index > 5000) return text.slice(0, m.index);
+    text = text.slice(0, m.index) + '\n' + rest.slice(end.index + end[0].length);
+  }
+  return text;
+}
 
 // ---------- floor-plan grids written in the page text (Apartments.com, property-manager sites) ----------
 export function unitsFromText(text: string): Unit[] {
@@ -171,9 +185,21 @@ export function apartmentsUnits(text: string): Unit[] {
   return out;
 }
 
+/** Apartments.com "Details" block: a "Utilities Included" heading followed by one utility per line. */
+const UTIL_WORDS: [RegExp, string][] = [[/^heat/i, 'heat'], [/^water/i, 'water'], [/^trash/i, 'trash'], [/^(?:high[- ]speed )?internet|^wi-?fi/i, 'internet'], [/^electric/i, 'electric'], [/^gas/i, 'gas']];
+export function apartmentsUtilities(text: string): Found | null {
+  const m = text.match(/\n\s*Utilities Included\s*\n((?:[ \t]*[A-Za-z][^\n]{0,30}\n){1,10})/); if (!m) return null;
+  const lines: string[] = [];
+  for (const l of m[1].split('\n').map(x => x.trim()).filter(Boolean)) { if (!/^(?:heat|water|sewer|trash|internet|high[- ]speed internet|wi-?fi|electric\w*|gas|cable|satellite tv)/i.test(l)) break; lines.push(l); }
+  if (!lines.length) return null;
+  const value = [...new Set(lines.flatMap(l => UTIL_WORDS.filter(([re]) => re.test(l)).map(([, w]) => w)))];
+  return value.length ? { value, evidence: `Listed: "Utilities Included: ${lines.join(', ')}"`, source: 'apartments.com' } : null;
+}
+
 export function readApartments(s: PageSnapshot): Pick<ReadResult, 'fields' | 'coord' | 'units'> {
   const ld = readJsonLd(s.jsonld, 'apartments.com');
   const text = listingText(s.text);
+  const util = apartmentsUtilities(text); if (util && !ld.fields.utilities_included) ld.fields.utilities_included = util;
   const units = ld.fields.rent ? [] : apartmentsUnits(text);
   return { ...ld, units: units.length ? units : ld.fields.rent ? [] : unitsFromText(text) };
 }

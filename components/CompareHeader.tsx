@@ -1,6 +1,6 @@
 'use client';
 // Header shared by the two views of your shortlist: the comparison table (/compare, default) and cards (/results).
-// Holds the view toggle, "My priorities" (the per-person scorecard), "Sharpen my matches" and the 2-or-3 switch.
+// Holds the view toggle, "My priorities" (the per-person scorecard) and the 2-or-3 switch.
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { api, C, SHADOW, Sheet } from './ui';
@@ -52,7 +52,7 @@ export function PrioritiesSheet({ open, onClose }: { open: boolean; onClose: () 
 const Icon = { table: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M3 10h18M3 15h18M9 4v16" /></svg>,
   cards: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="4" width="7.5" height="16" rx="2" /><rect x="13.5" y="4" width="7.5" height="16" rx="2" /></svg> };
 
-export function CompareHeader({ view, subtitle, confidence, count }: { view: 'table' | 'cards'; subtitle: string; confidence?: number; count: number }) {
+export function CompareHeader({ view, subtitle, count }: { view: 'table' | 'cards'; subtitle: string; confidence?: number; count: number }) {
   const { slots = 3 } = useApp();
   const [open, setOpen] = useState(false);
   const seg = (on: boolean) => ({ background: on ? '#FFFFFF' : 'transparent', color: on ? C.ink : C.muted, boxShadow: on ? '0 1px 3px rgba(29,31,26,.12)' : undefined });
@@ -72,8 +72,6 @@ export function CompareHeader({ view, subtitle, confidence, count }: { view: 'ta
       <div className="flex flex-wrap items-center gap-2">
         <button onClick={() => setOpen(true)} className="lift-sm flex h-11 cursor-pointer items-center gap-2 rounded-full border-0 bg-white px-4 text-[15px] font-semibold" style={{ boxShadow: SHADOW, color: C.ink }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0" /><circle cx="16" cy="6" r="2" /><circle cx="10" cy="12" r="2" /><circle cx="18" cy="18" r="2" /></svg>My priorities</button>
-        <Link href="/onboarding?sharpen=1" title="Up to 3 more quick this-or-that questions to separate your top places" className="lift-sm flex h-11 items-center gap-2 rounded-full px-4 text-[15px] font-semibold no-underline" style={{ background: C.lilac, color: '#3F35E0' }}>
-          Sharpen my matches{confidence != null && <span className="font-normal">· {Math.round(confidence * 100)}% sure</span>}</Link>
         <div className="ml-auto flex items-center gap-2">
           <span className="text-[14px] font-semibold" style={{ color: C.muted }}>Compare</span>
           <div className="flex gap-1 rounded-full p-1" style={{ background: '#EDEAE3' }} role="group" aria-label="How many places to compare">

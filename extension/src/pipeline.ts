@@ -1,7 +1,7 @@
 // One page → listing fields, used both for "Read this page" and for each page of a multi-page scan.
 // Order: site adapters → structured data → page text → AI fallback (only if rent or beds are missing) → map lookup.
 import type { ReadResult } from './adapters';
-import { mergeAI, readSnapshot, toExtracted } from './read';
+import { guessBasis, mergeAI, readSnapshot, toExtracted } from './read';
 import { snapshotPage, type PageSnapshot } from './snapshot';
 import { detectChallenge, type Challenge } from './discover';
 import { geocode } from './geocode';
@@ -85,15 +85,16 @@ export async function toSaved(snap: PageSnapshot, a: Analysed, fields: Extracted
 }
 
 /** Fields for a scanned page: if it lists several floor plans and no single rent, take the cheapest plan that fits the group. */
-export function scanFields(read: ReadResult, group: number | undefined): { fields: Extracted[]; beds?: number } {
+export function scanFields(read: ReadResult, group: number | undefined, host = ''): { fields: Extracted[]; beds?: number } {
   const f = { ...read.fields };
+  const withBasis = () => { if (!f.price_basis && f.rent && f.beds) f.price_basis = guessBasis(Number(f.rent.value), Number(f.beds.value), host); return toExtracted(f); };
   if (!f.rent && read.units.length) {
     const fit = read.units.filter(u => group == null || (u.beds >= group && u.beds <= group + 1));
     const u = (fit.length ? fit : read.units).slice().sort((x, y) => x.rent - y.rent)[0];
     f.rent = { value: u.rent, evidence: `Cheapest floor plan that fits: ${u.label}`, source: 'page text' };
     f.beds = { value: u.beds, evidence: u.label, source: 'page text' };
     if (u.basis) f.price_basis = { value: u.basis, evidence: u.evidence ?? u.label, source: 'page text' };
-    return { fields: toExtracted(f), beds: u.beds };
+    return { fields: withBasis(), beds: u.beds };
   }
-  return { fields: toExtracted(f) };
+  return { fields: withBasis() };
 }

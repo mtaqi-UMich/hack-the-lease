@@ -1,13 +1,14 @@
 'use client';
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { api, C, Page, ProvDot, SHADOW, Toast, money } from '@/components/ui';
 import { WhatIf } from '@/components/WhatIf';
 import { PhotoCarousel } from '@/components/Photos';
 import { setState } from '@/lib/store';
-import { useComparison } from '@/lib/useComparison';
+import { chooseCompared, useComparison } from '@/lib/useComparison';
 import { isOutside } from '@/lib/brought';
 import { CompareHeader } from '@/components/CompareHeader';
+import { ComparePicker } from '@/components/ComparePicker';
 import type { CardOut, Cell, XReason } from '@/lib/compare';
 
 type CellV = { main: string; color?: string; sub?: string; dot?: CardOut['cost']['lines'][number]['provenance'] };
@@ -48,7 +49,10 @@ function buildRows(cards: CardOut[], niche: string[]): Row[] {
 }
 
 export default function ComparePage() {
-  const { r, cards, bench, profile, seen, brought, outsideTag } = useComparison();
+  const { r, top, cards, bench, profile, seen, shown, brought, saved, outsideTag, sourceOf, pendingAdd, clearPendingAdd } = useComparison();
+  const [picker, setPicker] = useState(false);
+  useEffect(() => { if (pendingAdd) setPicker(true); }, [pendingAdd]); // arrived from the extension's "Save & compare"
+  const closePicker = () => { setPicker(false); clearPendingAdd(); };
   const [niche, setNiche] = useState<string[]>([]);
   const [sheet, setSheet] = useState<null | { kind: 'replace' | 'message' | 'tour'; pos: number }>(null);
   const [reason, setReason] = useState<XReason>('skip');
@@ -99,7 +103,13 @@ export default function ComparePage() {
       <div className="overflow-x-auto rounded-[18px] bg-white" style={{ boxShadow: SHADOW }}>
         <div className="min-w-[740px]">
           <div className="grid" style={grid}>
-            <div className="sticky left-0 z-[1] bg-white" />
+            <div className="sticky left-0 z-[1] flex bg-white p-2.5 pr-0 pt-3.5">
+              <button onClick={() => setPicker(true)} className="lift-sm flex h-[150px] w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-[12px] border-0 px-2 text-center text-[14px] font-semibold leading-tight" style={{ background: C.lilac, color: '#3F35E0' }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="4" width="7" height="7" rx="1.5" /><rect x="14" y="4" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><path d="M17.5 14v7M14 17.5h7" /></svg>
+                Choose what to compare
+                {saved.length > 0 && <span className="text-[12px] font-normal">{saved.length} saved</span>}
+              </button>
+            </div>
             {cards.map((c, pos) => (
               <div key={c.id} className="flex flex-col gap-2.5 px-2.5 pb-3 pt-3.5">
                 <PhotoCarousel id={c.id} short={c.short} stock={!isOutside(c.id)} rounded={12} className="h-[150px]">
@@ -129,7 +139,9 @@ export default function ComparePage() {
             <div className="sticky left-0 z-[1] bg-white" />
             {cards.map((c, pos) => (
               <div key={c.id} className="flex flex-col gap-2 px-2.5 pb-4 pt-3.5">
-                {isOutside(c.id) ? <span className="flex h-11 items-center justify-center rounded-full text-center text-[13px]" style={{ background: C.soft, color: C.muted }}>Apply on the site you found it</span>
+                {isOutside(c.id) ? (sourceOf(c.id)
+                  ? <a href={sourceOf(c.id)!.url} target="_blank" rel="noopener noreferrer" className="lift-sm flex h-11 items-center justify-center rounded-full text-[15px] font-semibold text-white no-underline" style={{ background: C.indigo }}>Apply on {sourceOf(c.id)!.host} ↗</a>
+                  : <span className="flex h-11 items-center justify-center rounded-full text-center text-[13px]" style={{ background: C.soft, color: C.muted }}>Apply on the site you found it</span>)
                   : <Link href={`/apply?id=${c.id}`} className="lift-sm flex h-11 items-center justify-center rounded-full text-[15px] font-semibold text-white no-underline" style={{ background: C.indigo }}>Check if I qualify</Link>}
                 <div className="grid grid-cols-2 gap-1.5">
                   <button onClick={() => openMessage(pos)} className="lift-sm h-10 cursor-pointer rounded-full border-0 text-[14px] font-semibold" style={{ background: C.soft }}>Message</button>
@@ -200,6 +212,8 @@ export default function ComparePage() {
           </div>
         </div>
       )}
+      <ComparePicker open={picker} onClose={closePicker} top={top} cards={cards} saved={saved} brought={brought} shown={shown} pendingAdd={pendingAdd}
+        onChoose={ids => { chooseCompared(ids); closePicker(); setToast(`Comparing ${ids.length} places`); }} />
       <Toast text={toast} onDone={() => setToast(null)} />
     </Page>
   );

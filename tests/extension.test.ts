@@ -1,8 +1,9 @@
 // Browser-extension readers, field mapping, PII stripping, "missing = Unknown", and score parity with the website.
 // All fixtures are SYNTHETIC — they mimic the structure of each site's embedded data, never real page content.
 import { describe, expect, it } from 'vitest';
-import { readApartments, readJsonLd, readZillow, unitsFromText } from '../extension/src/adapters';
-import { mergeAI, readSnapshot, toExtracted } from '../extension/src/read';
+import { listingText, readApartments, readJsonLd, readZillow, unitsFromText } from '../extension/src/adapters';
+import { guessBasis, mergeAI, readSnapshot, toExtracted } from '../extension/src/read';
+import { ruleExtract } from '../lib/extract';
 import type { PageSnapshot } from '../extension/src/snapshot';
 import { score } from '../extension/src/score';
 import { broughtToListing } from '../lib/brought';
@@ -120,5 +121,70 @@ describe('score parity with the website', () => {
     const s = score(fields, undefined, profile, [], 'Test 2BR');
     expect(s.commuteKnown).toBe(false); expect(s.card).not.toBeNull(); expect(s.top3.length).toBe(3);
     expect(s.missing.map(m => m.key)).toContain('price_basis'); expect(s.askText).toMatch(/per person or for the whole unit/);
+  });
+});
+
+// Layouts seen on live Ann Arbor pages (2026-11-20). Text shapes are mimicked; names and numbers are SYNTHETIC.
+describe('live-page regressions', () => {
+  const aptText = 'Sample Towers\n20 Demo St, Ann Arbor, MI 48104\nTotal Monthly Price\n\n$700 - $2,400\n\nBedrooms\n\nStudio - 3 bd\n\nBathrooms\n\n1 ba\n\nSquare Feet\n\n400 - 670 sq ft\n\n' +
+    'This vibrant community feels like a small town.\nPricing & Floor Plans\nAll\nStudio\n1 Bedroom\n2 Bedrooms\n' +
+    'A - Studio\nStarting at $950\n/ Person\nTotal Monthly Price\nStudio\n1 Bath\n400 Sq Ft\n' +
+    'B - Two Bed\nStarting at $725\n/ Person\nTotal Monthly Price\n2 Beds\n1 Bath\n670 Sq Ft\n' +
+    'Fees and Policies\nRequired Fees Pets Parking\nUtilities & Essentials\n' + 'x'.repeat(250) +
+    '\nDetails\nUtilities Included\nGas\nHeat\nTrash Removal\nSewer\nCable\nInternet\nLease Options\n12 - 24 Month Leases\n';
+  const r = readSnapshot(snap({ host: 'apartments.com', text: aptText }));
+  it('a header price range, filter buttons and a size range never become the rent, beds or size of a multi-plan building', () => {
+    expect(r.units.length).toBe(2);
+    expect(r.fields.rent).toBeUndefined(); expect(r.fields.beds).toBeUndefined(); expect(r.fields.sqft).toBeUndefined();
+    expect(r.needsAI).toBe(false); // plans give the rent — no AI call
+  });
+  it('"community feels" is not a community fee; a tab bar is not parking', () => {
+    expect(r.fields.fees).toBeUndefined(); expect(r.fields.parking).toBeUndefined();
+  });
+  it('reads the Utilities Included list (and does not treat Sewer as water)', () => {
+    expect(r.fields.utilities_included?.value).toEqual(['gas', 'heat', 'trash', 'internet']);
+  });
+  it('a lone "Utilities Included" heading is not "none included"', () => {
+    expect(ruleExtract('Utilities Included').find(f => f.key === 'utilities_included')?.status).toBe('Unknown');
+  });
+  it('Zillow: the same plans repeated across floorPlans / ungroupedUnits and a duplicated blob are listed once', () => {
+    const building = { buildingName: 'Example Lofts', address: { streetAddress: '5 Sample St', city: 'Ann Arbor', state: 'MI' }, latitude: 42.27, longitude: -83.74,
+      floorPlans: [{ beds: 0, baths: 1, price: 1800 }, { beds: 1, baths: 1, price: 2600 }], ungroupedUnits: [{ beds: 0, baths: 1, price: 1800 }, { beds: 1, baths: 1, price: 2600 }] };
+    const nd = JSON.stringify({ props: { pageProps: { building } } });
+    expect(readZillow(snap({ host: 'zillow.com', nextData: nd, embedded: [nd] })).units.map(u => [u.beds, u.rent])).toEqual([[0, 1800], [1, 2600]]);
+  });
+  it('deposit split over two lines, "607ft2", and "Laundry Facility"', () => {
+    const f = Object.fromEntries(ruleExtract('Required\nSecurity deposit\n$1,500\n$1,000 / 1br - 607ft2 - Ceiling Fans, Laundry Facility').map(x => [x.key, x.value]));
+    expect(f.deposit).toBe(1500); expect(f.sqft).toBe(607); expect(f.laundry).toBe('in_building');
+  });
+  it('a mid-page "Nearby apartments" carousel is cut out, not everything after it', () => {
+    const t = 'Demo House\n' + 'x'.repeat(250) + '\nNearby apartments for rent\n$750\n1 bd1 ba\nSkip to the beginning of the carousel\nSkip carousel\nListing order may reflect relevance, quality, and paid promotion.\nRequired\nSecurity deposit\n$2,000\nNearby Homes\n$999';
+    const out = listingText(t);
+    expect(out).toContain('Security deposit'); expect(out).not.toContain('$750'); expect(out).not.toContain('$999');
+  });
+  it('a pet deposit is not the security deposit', () => {
+    expect(ruleExtract('Dog deposit $250').find(x => x.key === 'deposit')?.status).toBe('Unknown');
+  });
+  it('a page with exactly one floor plan uses it as the rent', () => {
+    const one = readSnapshot(snap({ host: 'apartments.com', text: 'Demo Flat\n' + 'x'.repeat(50) + '\nStarting at $1,200\nTotal Monthly Price\n1 Bed\n1 Bath\n600 Sq Ft\n' }));
+    expect(one.fields.rent?.value).toBe(1200); expect(one.fields.beds?.value).toBe(1); expect(one.needsAI).toBe(false);
+  });
+});
+
+describe('per person vs whole place is preselected', () => {
+  it('"By-The-Bed Leasing" on the page is a stated fact → per person', () => {
+    const r = readSnapshot(snap({ host: 'apartments.com', text: 'Demo Hall\nHighlights\nBy-The-Bed Leasing\nWalk To Campus\n' + 'x'.repeat(300) }));
+    expect(r.fields.price_basis?.value).toBe('per_bed'); expect(r.fields.price_basis?.source).toBe('page text');
+  });
+  it('"Application fee $50 per person" is not a price basis', () => {
+    expect(readSnapshot(snap({ text: 'Rent is $2,000.\n3 bedrooms.\nApplication fee $50 per person.' })).fields.price_basis).toBeUndefined();
+  });
+  it('guesses when the page is silent, and says it is a guess', () => {
+    expect(guessBasis(1100, 4, 'example.test').value).toBe('per_bed');   // $275 a bedroom can't be the whole place
+    expect(guessBasis(3600, 3, 'example.test').value).toBe('per_unit');
+    expect(guessBasis(6000, 5, 'zillow.com').value).toBe('per_unit');
+    expect(guessBasis(1500, 1, 'example.test').value).toBe('per_unit');
+    expect(guessBasis(1100, 4, 'zillow.com').source).toBe('guess');
+    expect(guessBasis(1100, 4, 'zillow.com').evidence).toMatch(/^Our guess/);
   });
 });
