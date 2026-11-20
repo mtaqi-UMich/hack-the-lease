@@ -129,17 +129,17 @@ function tagFor(pos: number, card: { total: number; commute: Commute }, all: { t
   return 'Next best';
 }
 
-export function buildCards(ids: string[], p: Profile, ctx?: { student: Student; pBest: Map<string, number>; utility: Map<string, number | null> }): CardOut[] {
+export function buildCards(ids: string[], p: Profile, ctx?: { student: Student; pBest: Map<string, number>; utility: Map<string, number | null> }, extra?: Map<string, Listing>): CardOut[] {
   const r = ctx ?? (() => { const rk = rankAll(p); return { student: rk.student, pBest: new Map(rk.rows.map(x => [x.id, x.p])), utility: new Map(rk.rows.map(x => [x.id, x.ev?.u ?? null])) }; })();
   const s = r.student; const g = groupOf(p) ?? s.group;
-  const base = ids.map(id => byId.get(id)!).filter(Boolean).map(l => {
+  const base = ids.map(id => extra?.get(id) ?? byId.get(id)!).filter(Boolean).map(l => {
     const cost = trueMonthlyCost(l, { group: p.living === 'match' ? 1 : g, mode: s.mode, needsParking: s.parking });
     return { l, cost, total: cost.perPerson, commute: commuteFor(l, s) };
   });
   return base.map((c, pos) => {
     const others = base.filter((_, j) => j !== pos);
     return {
-      id: c.l.id, rank: pos + 1, tag: tagFor(pos, c, base), name: c.l.name, short: c.l.short, hood: c.l.hood, landlord: landlordName(c.l.landlord_id), photos: c.l.photos,
+      id: c.l.id, rank: pos + 1, tag: tagFor(pos, c, base), name: c.l.name, short: c.l.short, hood: c.l.hood, landlord: c.l.landlord_id === 'byo' ? 'Found elsewhere' : landlordName(c.l.landlord_id), photos: c.l.photos,
       verified: daysSince(c.l.verified_at) <= 7, pBest: r.pBest.get(c.l.id) ?? 0, example: true,
       cost: c.cost, total: c.total, leaseBadge: leaseBadge(c.l, g),
       commute: c.commute,

@@ -9,22 +9,47 @@ import type { Listing } from './types';
 export type Payer = 'parent' | 'income' | 'aid' | 'service';
 export type Credit = 'none' | 'below650' | '650plus';
 export interface PreQ { pay: Payer; credit: Credit; monthly?: number; international?: boolean }
-export type Verdict = 'Likely eligible' | 'Likely needs a guarantor' | 'Missing: proof of funds';
+export type Verdict = 'Likely eligible' | 'Likely needs a guarantor' | 'Missing: proof of funds' | 'Not accepted here';
 
 export const INCOME_MULTIPLE = 3;
 
-/** Landlord criteria (Example): 3× rent in income, OR a guarantor; credit 650+ OR a guarantor. Aid and family support count as income (source of income is protected in Ann Arbor). */
-export function prequalify(l: Listing, q: PreQ, group = 1): { verdict: Verdict; why: string; rentPerPerson: number } {
+/** Each landlord's screening rules (Example data — in production these come from the landlord's published criteria).
+ *  incomeX: monthly income needed as a multiple of rent · minCredit: lowest US credit accepted (no credit history never passes alone)
+ *  guarantorX: what a parent/co-signer must earn as a multiple of rent · service: accepts guarantor services (TheGuarantors, Leap, etc.) */
+export interface Screening { incomeX: number; minCredit: 'below650' | '650plus'; guarantorX: number; service: boolean }
+export const SCREENING: Record<string, Screening> = {
+  hackberry: { incomeX: 3, minCredit: '650plus', guarantorX: 4, service: true },
+  maizeblue: { incomeX: 3, minCredit: '650plus', guarantorX: 4, service: true },
+  arborprop: { incomeX: 3, minCredit: '650plus', guarantorX: 5, service: false },
+  huronview: { incomeX: 2.5, minCredit: '650plus', guarantorX: 4, service: true },
+  kerrylane: { incomeX: 3, minCredit: 'below650', guarantorX: 3, service: false },
+  packardpm: { incomeX: 3.5, minCredit: '650plus', guarantorX: 5, service: true },
+  northwoodre: { incomeX: 3, minCredit: '650plus', guarantorX: 4, service: true },
+  owner_jlee: { incomeX: 2.5, minCredit: 'below650', guarantorX: 3, service: false },
+  owner_mpatel: { incomeX: 3, minCredit: 'below650', guarantorX: 3, service: false },
+};
+const DEFAULT_SCREENING: Screening = { incomeX: INCOME_MULTIPLE, minCredit: '650plus', guarantorX: 4, service: true };
+export const screeningFor = (landlordId: string) => SCREENING[landlordId] ?? DEFAULT_SCREENING;
+
+/** Pre-qualify against this landlord's own rules. Aid and family support count as income (source of income is protected in Ann Arbor). */
+export function prequalify(l: Listing, q: PreQ, group = 1): { verdict: Verdict; why: string; rentPerPerson: number; rules: string } {
   const rent = trueMonthlyCost(l, { group, mode: 'bus', needsParking: false }).perPerson;
-  const need = rent * INCOME_MULTIPLE;
-  if (q.pay === 'parent') return { verdict: 'Likely eligible', why: `With a parent guarantor at ${INCOME_MULTIPLE}× rent ($${need.toLocaleString('en-US')} a month).`, rentPerPerson: rent };
-  if (q.pay === 'service') return { verdict: 'Likely eligible', why: `${landlordName(l.landlord_id)} accepts guarantor services; they usually charge 60–110% of one month’s rent.`, rentPerPerson: rent };
+  const sc = screeningFor(l.landlord_id);
+  const who = landlordName(l.landlord_id);
+  const $ = (n: number) => `$${Math.round(n).toLocaleString('en-US')}`;
+  const rules = `${who}: income ${sc.incomeX}× rent, credit ${sc.minCredit === '650plus' ? '650+' : 'any score'}, guarantor ${sc.guarantorX}× rent, guarantor services ${sc.service ? 'accepted' : 'not accepted'}`;
+  if (q.pay === 'parent') return { verdict: 'Likely eligible', why: `Your guarantor needs to earn about ${$(rent * sc.guarantorX)} a month (${sc.guarantorX}× rent) — ${who}’s rule.`, rentPerPerson: rent, rules };
+  if (q.pay === 'service') return sc.service
+    ? { verdict: 'Likely eligible', why: `${who} accepts guarantor services; they usually charge 60–110% of one month’s rent (about ${$(rent * 0.6)}–${$(rent * 1.1)} once).`, rentPerPerson: rent, rules }
+    : { verdict: 'Not accepted here', why: `${who} doesn’t accept guarantor services. A parent guarantor earning ${$(rent * sc.guarantorX)} a month would work, or pick another place.`, rentPerPerson: rent, rules };
+  const need = rent * sc.incomeX;
   const monthly = q.monthly ?? 0;
-  if (monthly <= 0) return { verdict: 'Missing: proof of funds', why: `Add your monthly ${q.pay === 'aid' ? 'aid' : 'income'} — you need about $${need.toLocaleString('en-US')} a month.`, rentPerPerson: rent };
+  if (monthly <= 0) return { verdict: 'Missing: proof of funds', why: `Add your monthly ${q.pay === 'aid' ? 'aid' : 'income'} — ${who} asks for about ${$(need)} a month (${sc.incomeX}× rent).`, rentPerPerson: rent, rules };
   const incomeOk = monthly >= need;
-  const creditOk = q.credit === '650plus';
-  if (incomeOk && creditOk) return { verdict: 'Likely eligible', why: `${q.pay === 'aid' ? 'Aid counts as income here — that’s the law in Ann Arbor. ' : ''}$${monthly.toLocaleString('en-US')} covers ${INCOME_MULTIPLE}× rent.`, rentPerPerson: rent };
-  return { verdict: 'Likely needs a guarantor', why: !incomeOk ? `$${monthly.toLocaleString('en-US')} is under ${INCOME_MULTIPLE}× rent ($${need.toLocaleString('en-US')}).` : `${q.credit === 'none' ? 'No US credit history yet' : 'Credit below 650'} — a guarantor or guarantor service fixes this.`, rentPerPerson: rent };
+  const creditOk = q.credit === '650plus' || (q.credit === 'below650' && sc.minCredit === 'below650');
+  if (incomeOk && creditOk) return { verdict: 'Likely eligible', why: `${q.pay === 'aid' ? 'Aid counts as income here — that’s the law in Ann Arbor. ' : ''}${$(monthly)} covers ${who}’s ${sc.incomeX}× rent (${$(need)}).`, rentPerPerson: rent, rules };
+  const fix = sc.service ? 'a parent guarantor or a guarantor service fixes this' : 'a parent guarantor fixes this (no guarantor services here)';
+  return { verdict: 'Likely needs a guarantor', why: !incomeOk ? `${$(monthly)} is under ${who}’s ${sc.incomeX}× rent (${$(need)}) — ${fix}.` : `${q.credit === 'none' ? 'No US credit history yet' : 'Credit below 650'} — ${who} asks for 650+; ${fix}.`, rentPerPerson: rent, rules };
 }
 
 export interface LeaseLine { label: string; value: string; flag?: string }

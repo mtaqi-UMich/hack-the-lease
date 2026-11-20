@@ -9,25 +9,27 @@ import type { Payer, Credit, Verdict } from '@/lib/apply';
 
 const PAYS: [Payer, string][] = [['parent', 'Parent guarantor'], ['income', 'My income'], ['aid', 'Financial aid'], ['service', 'Guarantor service']];
 const CREDITS: [Credit, string][] = [['none', 'None yet'], ['below650', 'Below 650'], ['650plus', '650+']];
-const VCOL: Record<Verdict, { bg: string; fg: string }> = { 'Likely eligible': { bg: C.lime, fg: C.forest }, 'Likely needs a guarantor': { bg: '#FFF4DF', fg: '#9A5B00' }, 'Missing: proof of funds': { bg: C.soft, fg: C.ink } };
+const VCOL: Record<Verdict, { bg: string; fg: string }> = { 'Likely eligible': { bg: C.lime, fg: C.forest }, 'Likely needs a guarantor': { bg: '#FFF4DF', fg: '#9A5B00' }, 'Missing: proof of funds': { bg: C.soft, fg: C.ink }, 'Not accepted here': { bg: '#FDE7E4', fg: C.bad } };
 const STEPS = [['Profile', 'From your housing ID'], ['Roommate', 'Your roommate applies with you'], ['Guarantor', 'We email your guarantor a 2-minute link'], ['Screening', 'A partner checks ID and credit · $35']];
 
 function Apply() {
   const sp = useSearchParams();
   const { profile, shown, name } = useApp();
   const hydrated = useHydrated();
-  const id = sp.get('id') ?? shown[0];
+  const ours = shown.filter(x => x !== 'BYO');
+  const [picked, setPicked] = useState<string | null>(null);
+  const id = picked ?? sp.get('id') ?? ours[0];
   const [stage, setStage] = useState(0);
   const [pay, setPay] = useState<Payer>('parent');
   const [credit, setCredit] = useState<Credit>('none');
   const [monthly, setMonthly] = useState('');
   const [rights, setRights] = useState(false);
   const [done, setDone] = useState(0);
-  const [pq, setPq] = useState<{ id: string; short: string; verdict: Verdict; why: string; rentPerPerson: number }[]>([]);
+  const [pq, setPq] = useState<{ id: string; short: string; verdict: Verdict; why: string; rentPerPerson: number; rules: string }[]>([]);
   const [app, setApp] = useState<{ id: string; unit: string; lease_review: { label: string; value: string; flag?: string }[] } | null>(null);
   const [signed, setSigned] = useState(false);
   const group = profile.living === 'match' ? 1 : (groupOf(profile) ?? 1);
-  const ids = Array.from(new Set([id, ...shown].filter(Boolean))).slice(0, 3) as string[];
+  const ids = Array.from(new Set([sp.get('id'), ...ours].filter(Boolean))).slice(0, 3) as string[];
 
   useEffect(() => {
     if (!hydrated || !ids.length) return;
@@ -58,18 +60,20 @@ function Apply() {
             <p className="m-0 text-[17px]" style={{ color: C.muted }}>30 seconds. No SSN, no fee, nothing stored.</p>
           </div>
           <div className="flex flex-col gap-2.5"><span className="text-[15px] font-semibold">Who pays the rent?</span>
-            <div className="flex flex-wrap gap-2">{PAYS.map(([k, l]) => <button key={k} onClick={() => setPay(k)} aria-pressed={pay === k} className="h-11 cursor-pointer rounded-full border-0 px-[18px] text-[15px] font-semibold" style={{ background: pay === k ? C.indigo : '#FFFFFF', color: pay === k ? '#FFFFFF' : C.ink, boxShadow: SHADOW }}>{l}</button>)}</div>
+            <div className="flex flex-wrap gap-2">{PAYS.map(([k, l]) => <button key={k} onClick={() => setPay(k)} aria-pressed={pay === k} className="lift-sm h-11 cursor-pointer rounded-full border-0 px-[18px] text-[15px] font-semibold" style={{ background: pay === k ? C.indigo : '#FFFFFF', color: pay === k ? '#FFFFFF' : C.ink, boxShadow: SHADOW }}>{l}</button>)}</div>
           </div>
           {(pay === 'income' || pay === 'aid') && <input aria-label="Monthly amount" inputMode="numeric" placeholder={`Monthly ${pay === 'aid' ? 'aid' : 'income'} ($)`} value={monthly} onChange={e => setMonthly(e.target.value.replace(/[^\d]/g, ''))} className="h-12 rounded-[12px] bg-white px-3.5 text-[16px]" style={{ border: '1px solid rgba(29,31,26,.14)' }} />}
           <div className="flex flex-col gap-2.5"><span className="text-[15px] font-semibold">US credit score</span>
             <div className="grid grid-cols-3 gap-1 rounded-full p-1" style={{ background: '#EDEAE3' }}>{CREDITS.map(([k, l]) => <button key={k} onClick={() => setCredit(k)} className="h-10 cursor-pointer rounded-full border-0 text-[15px] font-semibold" style={{ background: credit === k ? '#FFFFFF' : 'transparent', color: credit === k ? C.ink : C.muted }}>{l}</button>)}</div>
           </div>
           <div className="flex flex-col gap-2">
+            <span className="text-[13px]" style={{ color: C.muted }}>Tap a place to apply there instead. Each landlord has its own rules.</span>
             {pq.map(x => (
-              <div key={x.id} className="flex flex-col gap-1 rounded-[18px] bg-white p-4" style={{ boxShadow: SHADOW, outline: x.id === id ? `2px solid ${C.indigo}` : undefined }}>
-                <div className="flex items-center justify-between gap-2"><span className="text-[17px] font-semibold">{x.short}</span><span className="flex h-[26px] items-center rounded-full px-2.5 text-[13px] font-semibold" style={{ background: VCOL[x.verdict].bg, color: VCOL[x.verdict].fg }}>{x.verdict}</span></div>
+              <button key={x.id} onClick={() => setPicked(x.id)} aria-pressed={x.id === id} className="lift flex cursor-pointer flex-col gap-1 rounded-[18px] border-0 bg-white p-4 text-left" style={{ boxShadow: x.id === id ? `inset 0 0 0 2px ${C.indigo}, ${SHADOW}` : SHADOW, color: C.ink }}>
+                <div className="flex w-full items-center justify-between gap-2"><span className="text-[17px] font-semibold">{x.short}{x.id === id && <span className="ml-2 text-[13px] font-semibold" style={{ color: C.indigo }}>Applying here</span>}</span><span className="flex h-[26px] flex-none items-center rounded-full px-2.5 text-[13px] font-semibold" style={{ background: VCOL[x.verdict].bg, color: VCOL[x.verdict].fg }}>{x.verdict}</span></div>
                 <span className="text-[14px]" style={{ color: C.muted }}>{money(x.rentPerPerson)} a month · {x.why}</span>
-              </div>
+                <span className="text-[12px]" style={{ color: C.muted }}>{x.rules}</span>
+              </button>
             ))}
           </div>
           <button onClick={() => setRights(r => !r)} aria-expanded={rights} className="h-10 cursor-pointer self-start rounded-full border-0 bg-transparent px-0 text-[15px] font-semibold" style={{ color: C.indigo }}>Your rights in Ann Arbor {rights ? '−' : '+'}</button>
@@ -81,11 +85,11 @@ function Apply() {
             <li>Required fees must be inside the advertised rent (since Aug 1, 2026).</li>
             <li className="list-none pt-1" style={{ color: C.muted }}>Not legal advice.</li>
           </ul>}
-          <button onClick={() => setStage(1)} disabled={!target} className="h-[52px] cursor-pointer rounded-full border-0 text-[17px] font-semibold text-white disabled:opacity-40" style={{ background: C.indigo }}>Start one application for {target?.short ?? 'your #1'}</button>
+          <button onClick={() => setStage(1)} disabled={!target || target.verdict === 'Not accepted here'} className="h-[52px] cursor-pointer rounded-full border-0 text-[17px] font-semibold text-white disabled:opacity-40" style={{ background: C.indigo }}>{target?.verdict === 'Not accepted here' ? `Pick another place or payer for ${target.short}` : `Start one application for ${target?.short ?? 'your top pick'}`}</button>
         </>)}
 
         {stage === 1 && (<>
-          <div className="flex flex-col gap-2"><h1 className="m-0 text-[30px] font-bold tracking-[-0.03em]">One application</h1><p className="m-0 text-[17px]" style={{ color: C.muted }}>Filled once, reused for any landlord here. Most of it comes from your housing ID.</p></div>
+          <div className="flex flex-col gap-2"><h1 className="m-0 text-[30px] font-bold tracking-[-0.03em]">One application</h1><p className="m-0 text-[17px]" style={{ color: C.muted }}>Like the Common App, but for rentals: fill it once and send it to any landlord here. Most of it comes from your housing ID, so this is 4 quick steps, not 4 forms.</p></div>
           <div className="flex flex-col gap-2">
             {STEPS.slice(0, group > 1 ? 4 : 4).map(([t, s], i) => {
               const st = i < done ? { bg: C.forest, fg: C.lime, mark: '✓' } : i === done ? { bg: C.indigo, fg: '#FFFFFF', mark: String(i + 1) } : { bg: C.soft, fg: C.ink, mark: String(i + 1) };

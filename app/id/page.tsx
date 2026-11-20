@@ -59,7 +59,7 @@ export default function IdCardPage() {
             <div className="flex items-center justify-between"><span className="text-[17px] font-semibold">How sure we are</span><span className="flex h-[26px] items-center rounded-full px-2.5 text-[13px] font-semibold" style={{ background: level === 'High' ? C.lime : level === 'Medium' ? C.cyan : C.soft, color: C.forest }}>{level}</span></div>
             <span className="text-[15px] leading-[1.45]" style={{ color: C.muted }}>{Math.round(conf * 100)}% chance your best place is in your top 3.{s && !s.parking && profile.deal?.parking == null ? ' We assumed you don’t need parking.' : ''}</span>
           </div>
-          <a href="/results" className="flex h-[52px] items-center justify-center rounded-full text-[17px] font-semibold text-white no-underline" style={{ background: C.indigo }}>Show my top 3</a>
+          <a href="/compare" className="lift-sm flex h-[52px] items-center justify-center rounded-full text-[17px] font-semibold text-white no-underline" style={{ background: C.indigo }}>Show my top 3</a>
           <div className="grid grid-cols-2 gap-2">
             <a href="/onboarding?fresh=1" className="flex h-12 items-center justify-center rounded-full bg-white text-[15px] font-semibold no-underline" style={{ color: C.ink, boxShadow: SHADOW }}>Edit answers</a>
             <button onClick={() => setToast('Share link copied (demo)')} className="h-12 cursor-pointer rounded-full border-0 bg-white text-[15px] font-semibold" style={{ color: C.ink, boxShadow: SHADOW }}>Share with roommate</button>

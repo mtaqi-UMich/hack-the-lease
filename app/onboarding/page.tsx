@@ -40,7 +40,7 @@ function Onboarding() {
     try {
       const out = await api<StepResp>('/api/onboarding/step', { profile, answer, sharpen });
       setState({ profile: out.profile });
-      if (out.done) { router.push(sharpen ? '/results' : '/id'); return; }
+      if (out.done) { router.push(sharpen ? '/compare' : '/id'); return; }
       setR(out); setSel(null); setPicks([]);
       if (out.next_question?.kind === 'budget') setBudget(out.profile.budget ?? Math.round((out.student.budget || 1150) / 25) * 25);
     } finally { setBusy(false); }
@@ -79,7 +79,7 @@ function Onboarding() {
   }
   async function back() {
     const h = getState().history;
-    if (!h.length) { router.push(sharpen ? '/results' : '/'); return; }
+    if (!h.length) { router.push(sharpen ? '/compare' : '/'); return; }
     const prev = h[h.length - 1];
     setState({ history: h.slice(0, -1), profile: prev });
     await load(prev);

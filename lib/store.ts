@@ -2,6 +2,7 @@
 // Tiny client store: the student's answers + compare state, persisted per browser (convenience only).
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import type { Profile } from './session';
+import type { Brought } from './brought';
 
 export interface AppState {
   profile: Profile;
@@ -10,6 +11,8 @@ export interface AppState {
   seen: string[];           // removed via X
   name: string;
   appliedTo?: string;
+  slots?: 2 | 3;            // how many places to compare side by side
+  brought?: Brought;        // a listing the student brought from elsewhere (id "BYO"), private to this browser
 }
 const KEY = 'htl-state-v1';
 const initial: AppState = { profile: {}, history: [], shown: [], seen: [], name: 'Alex R.' };

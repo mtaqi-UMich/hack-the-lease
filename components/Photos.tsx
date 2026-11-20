@@ -41,21 +41,23 @@ function FloorPlan({ beds }: { beds: number }) {
   );
 }
 
-export function PhotoCarousel({ id, short, className = '', rounded = 0, children }: { id: string; short: string; className?: string; rounded?: number; children?: ReactNode }) {
+export function PhotoCarousel({ id, short, className = '', rounded = 0, stock = true, children }: { id: string; short: string; className?: string; rounded?: number; stock?: boolean; children?: ReactNode }) {
+  // a listing the student brought has no photos of ours — show only its layout, never stock photos
+  const slides = stock ? SLIDES : SLIDES.filter(x => x.kind === 'plan');
   const [i, setI] = useState(0);
   const startX = useRef<number | null>(null);
   const swiped = useRef(false);
-  const n = SLIDES.length;
+  const n = slides.length;
   const go = (d: number) => setI(x => (x + d + n) % n);
   const stop = (e: React.SyntheticEvent) => { e.preventDefault(); e.stopPropagation(); };
-  const s = SLIDES[i];
+  const s = slides[Math.min(i, n - 1)];
   return (
     <div className={`group relative overflow-hidden ${className}`} style={{ borderRadius: rounded, background: '#EDEAE3' }}
       onPointerDown={e => { startX.current = e.clientX; }}
       onPointerUp={e => { if (startX.current == null) return; const dx = e.clientX - startX.current; startX.current = null; if (Math.abs(dx) > 40) { swiped.current = true; go(dx < 0 ? 1 : -1); } }}
       onClickCapture={e => { if (swiped.current) { swiped.current = false; stop(e); } }}>
       <div className="flex h-full w-full transition-transform duration-500" style={{ transform: `translateX(-${i * 100}%)`, transitionTimingFunction: 'cubic-bezier(.2,.8,.2,1)' }}>
-        {SLIDES.map((sl, k) => (
+        {slides.map((sl, k) => (
           <div key={sl.kind} className="h-full w-full flex-none">
             {sl.kind === 'plan' ? <FloorPlan beds={bedsOf(short)} />
               : <img src={photo(id, sl.kind)} alt={`${short} — ${sl.label.toLowerCase()} (illustrative photo)`} loading={k === 0 ? 'eager' : 'lazy'} draggable={false} className="h-full w-full select-none object-cover" />}
@@ -63,15 +65,17 @@ export function PhotoCarousel({ id, short, className = '', rounded = 0, children
         ))}
       </div>
       {children}
+      {n > 1 && <>
       <button data-nav aria-label="Previous photo" onClick={e => { stop(e); go(-1); }} className="absolute left-2 top-1/2 flex h-8 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border-0 bg-white/90 opacity-0 transition-opacity duration-300 group-hover:opacity-100 focus-visible:opacity-100 max-sm:opacity-100" style={{ boxShadow: '0 2px 8px rgba(29,31,26,.18)' }}>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1D1F1A" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6" /></svg>
       </button>
       <button data-nav aria-label="Next photo" onClick={e => { stop(e); go(1); }} className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border-0 bg-white/90 opacity-0 transition-opacity duration-300 group-hover:opacity-100 focus-visible:opacity-100 max-sm:opacity-100" style={{ boxShadow: '0 2px 8px rgba(29,31,26,.18)' }}>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1D1F1A" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
       </button>
-      <div aria-label={`${s.label}, photo ${i + 1} of ${n}`} className="pointer-events-none absolute bottom-[13px] left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-full bg-black/35 px-1.5 py-1">
-        {SLIDES.map((sl, k) => <span key={sl.kind} className="h-1.5 rounded-full transition-all duration-300" style={{ width: k === i ? 12 : 5, background: k === i ? '#FFFFFF' : 'rgba(255,255,255,.55)' }} />)}
-      </div>
+      </>}
+      {n > 1 && <div aria-label={`${s.label}, photo ${i + 1} of ${n}`} className="pointer-events-none absolute bottom-[13px] left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-full bg-black/35 px-1.5 py-1">
+        {slides.map((sl, k) => <span key={sl.kind} className="h-1.5 rounded-full transition-all duration-300" style={{ width: k === i ? 12 : 5, background: k === i ? '#FFFFFF' : 'rgba(255,255,255,.55)' }} />)}
+      </div>}
     </div>
   );
 }

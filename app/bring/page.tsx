@@ -1,8 +1,10 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { api, C, SHADOW } from '@/components/ui';
-import { getState } from '@/lib/store';
+import { getState, setState } from '@/lib/store';
+import { useComparison } from '@/lib/useComparison';
 import type { Extracted } from '@/lib/extract';
 
 interface Resp {
@@ -24,6 +26,19 @@ const fmt = (f: Extracted) => {
 };
 
 export default function BringPage() {
+  const router = useRouter();
+  const { cards, seen, slots } = useComparison();
+  const [slotHint, setSlotHint] = useState<number | null>(null);
+  useEffect(() => { const v = new URLSearchParams(window.location.search).get('slot'); if (v != null && !Number.isNaN(Number(v))) setSlotHint(Number(v)); }, []);
+  function addToCompare(pos: number | 'add') {
+    if (!r) return;
+    const get = (k: string) => r.fields.find(f => f.key === k && f.status === 'Listed')?.value;
+    const label = `${get('address') ?? r.hood} · ${get('beds') ?? '?'} bed · $${Number(get('rent') ?? 0).toLocaleString('en-US')}`;
+    const ids = cards.map(c => c.id).filter(id => id !== 'BYO');
+    if (pos === 'add') ids.push('BYO'); else ids.splice(Math.min(pos, ids.length), pos < ids.length ? 1 : 0, 'BYO');
+    setState({ brought: { fields: r.fields.map(f => ({ key: f.key, value: f.value, status: f.status })), hood: r.hood, label }, shown: ids, seen: seen.filter(x => x !== 'BYO'), slots: (ids.length >= 3 || pos === 'add' ? 3 : slots) as 2 | 3 });
+    router.push('/compare');
+  }
   const [tab, setTab] = useState<'paste' | 'shot' | 'fields'>('paste');
   const [text, setText] = useState('');
   const [form, setForm] = useState({ rent: '', beds: '', address: '', price_basis: '' });
@@ -125,6 +140,10 @@ export default function BringPage() {
               </details>
             )}
             <span className="text-center text-[13px]" style={{ color: C.muted }}>Emails and phone numbers are removed before anything is scored. The image isn’t stored.</span>
+            <div className="flex flex-wrap justify-center gap-x-4">
+              <button onClick={async () => { const b = await fetch('/demo/listing-screenshot.png').then(x => x.blob()); readImage(new File([b], 'listing-screenshot.png', { type: 'image/png' })); }} className="h-10 cursor-pointer rounded-full border-0 bg-transparent px-3 text-[15px] font-semibold" style={{ color: C.indigo }}>Try the example screenshot</button>
+              <a href="/demo/listing-screenshot.png" download className="flex h-10 items-center px-3 text-[15px] font-semibold no-underline" style={{ color: C.muted }}>Download it</a>
+            </div>
           </div>
         )}
         {tab === 'fields' && (
@@ -142,7 +161,10 @@ export default function BringPage() {
           <div className="flex flex-col gap-2.5">
             <button onClick={() => { setAnswers({}); read({}); }} disabled={busy || (tab === 'paste' ? !text.trim() : !form.rent || !form.beds)} className="lift-sm h-[52px] cursor-pointer rounded-full border-0 text-[17px] font-semibold text-white disabled:opacity-40" style={{ background: C.indigo }}>{busy ? 'Reading…' : 'Read listing'}</button>
             <span className="text-center text-[13px]" style={{ color: C.muted }}>We only read what you paste. We never visit the site. Emails and phone numbers are removed first.</span>
-            <button onClick={useExample} className="h-10 cursor-pointer self-center rounded-full border-0 bg-transparent px-3 text-[15px] font-semibold" style={{ color: C.indigo }}>Try the Example listing</button>
+            <div className="flex flex-wrap justify-center gap-x-4">
+              <button onClick={useExample} className="h-10 cursor-pointer rounded-full border-0 bg-transparent px-3 text-[15px] font-semibold" style={{ color: C.indigo }}>Try the Example listing</button>
+              <a href="/demo/listing" target="_blank" rel="noopener" className="flex h-10 items-center px-3 text-[15px] font-semibold no-underline" style={{ color: C.muted }}>Open a demo listing page ↗</a>
+            </div>
           </div>
         )}
         {err && <p className="m-0 text-[15px]" style={{ color: C.bad }}>{err}</p>}
@@ -176,10 +198,20 @@ export default function BringPage() {
               <div className="mt-2 flex flex-col gap-2 rounded-[12px] p-3.5" style={{ background: '#F5F2EB' }}>
                 <span className="text-[17px] font-semibold">{r.rank.rank ? `This would be your ${ordinal(r.rank.rank)} pick` : r.rank.reason}</span>
                 <span className="text-[14px]" style={{ color: C.muted }}>{r.rank.rank ? `About $${r.rank.perPerson.toLocaleString('en-US')} rent per person${r.rank.minutes != null ? ` · ${r.rank.minutes} min each way` : ''} · area: ${r.hood} (Estimated). Scored against ${r.rank.of - 1} Example listings with your housing ID.` : 'Change your answers or ask the landlord about the missing details.'}</span>
-                <div className="flex flex-wrap gap-2">
-                  <Link href="/compare" className="flex h-10 items-center rounded-full px-4 text-[14px] font-semibold text-white no-underline" style={{ background: C.indigo }}>Back to compare</Link>
-                  <button onClick={() => alert('Demo: we’d send the landlord an invite from you — never automatically.')} className="h-10 cursor-pointer rounded-full border-0 px-4 text-[14px] font-semibold" style={{ background: C.soft }}>Invite this landlord to list</button>
-                </div>
+                {r.rank && (
+                  <div className="flex flex-col gap-2 pt-1">
+                    <span className="text-[14px] font-semibold">Put it in your comparison</span>
+                    <div className="flex flex-col gap-1.5">
+                      {cards.filter(c => c.id !== 'BYO').map((c, i) => (
+                        <button key={c.id} onClick={() => addToCompare(i)} className="lift flex cursor-pointer items-center justify-between gap-2 rounded-[14px] border-0 bg-white px-4 py-3 text-left text-[15px]" style={{ boxShadow: slotHint === i ? `inset 0 0 0 2px ${C.indigo}` : SHADOW }}>
+                          <span>Replace <b>{c.short}</b></span><span className="tnum" style={{ color: C.muted }}>${c.total.toLocaleString('en-US')} / mo</span>
+                        </button>
+                      ))}
+                      {cards.filter(c => c.id !== 'BYO').length < 3 && <button onClick={() => addToCompare('add')} className="lift flex cursor-pointer items-center rounded-[14px] border-0 px-4 py-3 text-left text-[15px] font-semibold text-white" style={{ background: C.indigo }}>Add it as another place</button>}
+                    </div>
+                    <button onClick={() => alert('Demo: we would send the landlord an invite from you, never automatically.')} className="h-9 cursor-pointer self-start rounded-full border-0 bg-transparent px-0 text-[14px] font-semibold" style={{ color: C.indigo }}>Invite this landlord to list</button>
+                  </div>
+                )}
               </div>
             )}
           </div>

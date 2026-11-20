@@ -1,13 +1,13 @@
 'use client';
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { api, C, Page, ProvDot, SHADOW, Toast, money } from '@/components/ui';
 import { WhatIf } from '@/components/WhatIf';
 import { PhotoCarousel } from '@/components/Photos';
-import { setState, useApp, useHydrated } from '@/lib/store';
-import { encodeProfile } from '@/lib/wire';
+import { setState } from '@/lib/store';
+import { useComparison } from '@/lib/useComparison';
+import { CompareHeader } from '@/components/CompareHeader';
 import type { CardOut, Cell, XReason } from '@/lib/compare';
-import type { CompareResp } from '../results/page';
 
 type CellV = { main: string; color?: string; sub?: string; dot?: CardOut['cost']['lines'][number]['provenance'] };
 type Row = { section: string } | { label: string; cells: CellV[] };
@@ -47,9 +47,7 @@ function buildRows(cards: CardOut[], niche: string[]): Row[] {
 }
 
 export default function ComparePage() {
-  const { profile, shown, seen } = useApp();
-  const [r, setR] = useState<CompareResp | null>(null);
-  const [bench, setBench] = useState<{ id: string; short: string; total: number; commute: number }[]>([]);
+  const { r, cards, bench, profile, seen, brought } = useComparison();
   const [niche, setNiche] = useState<string[]>([]);
   const [sheet, setSheet] = useState<null | { kind: 'replace' | 'message' | 'tour'; pos: number }>(null);
   const [reason, setReason] = useState<XReason>('skip');
@@ -57,22 +55,6 @@ export default function ComparePage() {
   const [msg, setMsg] = useState('');
   const [toast, setToast] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-
-  const hydrated = useHydrated();
-  const load = useCallback(async (isLive: () => boolean) => {
-    const p = encodeProfile(profile);
-    const top = await api<CompareResp>(`/api/compare?p=${p}`);
-    if (!isLive()) return;
-    if (shown.length === 3 && shown.join() !== top.cards.map(c => c.id).join()) {
-      const custom = await api<CompareResp>(`/api/compare?p=${p}&ids=${shown.join(',')}`);
-      if (!isLive()) return;
-      setR(custom);
-    } else { setR(top); const ids = top.cards.map(c => c.id); if (ids.join() !== shown.join()) setState({ shown: ids }); }
-    setBench(top.bench_cards.filter(b => !shown.includes(b.id) && !seen.includes(b.id)));
-  }, [profile, shown, seen]);
-  useEffect(() => { if (!hydrated) return; let live = true; load(() => live).catch(() => {}); return () => { live = false; }; }, [load, hydrated]);
-
-  const cards = r?.cards ?? [];
   const rows = buildRows(cards, niche);
   const tgt = sheet ? cards[sheet.pos] : null;
 
@@ -80,8 +62,12 @@ export default function ComparePage() {
     if (!sheet || !tgt) return;
     setBusy(true);
     try {
-      const out = await api<{ shown: string[]; cards: CardOut[]; bench: string[]; replacement: string | null; why: string; note: string; widened: string; profile: typeof profile }>('/api/bench/next', { profile, shown: cards.map(c => c.id), removed_id: tgt.id, reason, seen });
-      setState({ profile: out.profile, shown: out.shown, seen: [...seen, tgt.id] });
+      const ids = cards.map(c => c.id);
+      if (tgt.id === 'BYO') { setState({ shown: ids.filter(id => id !== 'BYO'), seen: [...seen, 'BYO'] }); setToast('Removed your listing — swapped in your next best match'); setSheet(null); return; }
+      const ours = ids.filter(id => id !== 'BYO');
+      const out = await api<{ shown: string[]; cards: CardOut[]; bench: string[]; replacement: string | null; why: string; note: string; widened: string; profile: typeof profile }>('/api/bench/next', { profile, shown: ours, removed_id: tgt.id, reason, seen });
+      const nextShown = ids.map(id => id === tgt.id ? out.replacement : id).filter(Boolean) as string[];
+      setState({ profile: out.profile, shown: nextShown, seen: [...seen, tgt.id] });
       const rep = out.cards.find(c => c.id === out.replacement);
       setToast(rep ? `Swapped in ${rep.short} — ${out.why}${out.note ? '. ' + out.note : ''}${out.widened ? ' ' + out.widened : ''}` : 'You’ve seen every match — try Bring any listing');
       setSheet(null); setReason('skip');
@@ -105,17 +91,7 @@ export default function ComparePage() {
 
   return (
     <Page>
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="flex flex-[1_1_320px] flex-col gap-1.5">
-          <h1 className="m-0 text-[34px] font-bold tracking-[-0.03em]">Compare</h1>
-          <p className="m-0 text-[17px]" style={{ color: C.muted }}>Your share per month · commute to {r ? ({ Central: 'Central Campus', North: 'North Campus', Medical: 'Medical Campus', Split: 'Central + North' } as Record<string, string>)[profile.base ?? r.student.base] : '…'} · Example data</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Link href="/map" className="lift-sm flex h-12 items-center gap-2 rounded-full bg-white px-5 text-[17px] font-semibold no-underline" style={{ color: C.ink, boxShadow: SHADOW }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1D1F1A" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z" /><path d="M9 4v14M15 6v14" /></svg>See on map</Link>
-          <Link href={cards[0] ? `/apply?id=${cards[0].id}` : '/apply'} className="lift-sm flex h-12 items-center rounded-full px-[22px] text-[17px] font-semibold text-white no-underline" style={{ background: C.indigo }}>Apply to top pick</Link>
-        </div>
-      </div>
+      <CompareHeader view="table" count={cards.length} confidence={r?.confidence} subtitle={`Your share per month · commute to ${r ? ({ Central: 'Central Campus', North: 'North Campus', Medical: 'Medical Campus', Split: 'Central + North' } as Record<string, string>)[profile.base ?? r.student.base] : '…'} · Example data`} />
 
       <WhatIf studentBase={r?.student.base} studentBudget={r?.student.budget} />
 
@@ -125,12 +101,12 @@ export default function ComparePage() {
             <div className="sticky left-0 z-[1] bg-white" />
             {cards.map((c, pos) => (
               <div key={c.id} className="flex flex-col gap-2.5 px-2.5 pb-3 pt-3.5">
-                <PhotoCarousel id={c.id} short={c.short} rounded={12} className="h-[150px]">
-                  <span className="absolute left-2 top-2 flex h-[26px] items-center rounded-full bg-white px-2.5 text-[13px] font-semibold">{c.tag}</span>
+                <PhotoCarousel id={c.id} short={c.short} stock={c.id !== 'BYO'} rounded={12} className="h-[150px]">
+                  <span className="absolute left-2 top-2 flex h-[26px] items-center rounded-full bg-white px-2.5 text-[13px] font-semibold">{c.id === 'BYO' ? 'Found elsewhere' : c.tag}</span>
                   <button onClick={() => { setReason('skip'); setSheet({ kind: 'replace', pos }); }} aria-label={`Replace ${c.short}`} className="lift-sm absolute right-1.5 top-1.5 z-[2] flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border-0 bg-white">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1D1F1A" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
                   </button>
-                  <span className="absolute bottom-2 left-2 flex h-[22px] items-center rounded-full px-2 text-[12px] font-semibold" style={{ background: C.cyan, color: '#0A3D44' }}>Example</span>
+                  <span className="absolute bottom-2 left-2 flex h-[22px] items-center rounded-full px-2 text-[12px] font-semibold" style={c.id === 'BYO' ? { background: C.lilac, color: '#3F35E0' } : { background: C.cyan, color: '#0A3D44' }}>{c.id === 'BYO' ? 'Your listing' : 'Example'}</span>
                   {c.verified && <span className="absolute bottom-2 right-2 flex h-[22px] items-center rounded-full px-2 text-[12px] font-semibold" style={{ background: C.lime, color: C.forest }}>Verified</span>}
                 </PhotoCarousel>
                 <div className="flex flex-col"><span className="text-[17px] font-semibold">{c.short}</span><span className="text-[13px]" style={{ color: C.muted }}>{c.name} · {c.landlord}</span></div>
@@ -152,7 +128,8 @@ export default function ComparePage() {
             <div className="sticky left-0 z-[1] bg-white" />
             {cards.map((c, pos) => (
               <div key={c.id} className="flex flex-col gap-2 px-2.5 pb-4 pt-3.5">
-                <Link href={`/apply?id=${c.id}`} className="lift-sm flex h-11 items-center justify-center rounded-full text-[15px] font-semibold text-white no-underline" style={{ background: C.indigo }}>Check if I qualify</Link>
+                {c.id === 'BYO' ? <span className="flex h-11 items-center justify-center rounded-full text-center text-[13px]" style={{ background: C.soft, color: C.muted }}>Apply on the site you found it</span>
+                  : <Link href={`/apply?id=${c.id}`} className="lift-sm flex h-11 items-center justify-center rounded-full text-[15px] font-semibold text-white no-underline" style={{ background: C.indigo }}>Check if I qualify</Link>}
                 <div className="grid grid-cols-2 gap-1.5">
                   <button onClick={() => openMessage(pos)} className="lift-sm h-10 cursor-pointer rounded-full border-0 text-[14px] font-semibold" style={{ background: C.soft }}>Message</button>
                   <button onClick={() => setSheet({ kind: 'tour', pos })} className="lift-sm h-10 cursor-pointer rounded-full border-0 text-[14px] font-semibold" style={{ background: C.soft }}>Tour</button>
@@ -164,7 +141,9 @@ export default function ComparePage() {
       </div>
 
       <div className="flex flex-col gap-2.5">
-        <span className="text-[15px] font-semibold" style={{ color: C.muted }}>Add a row</span>
+        <div className="flex flex-wrap items-center justify-between gap-2"><span className="text-[15px] font-semibold" style={{ color: C.muted }}>Add a row</span>
+          <div className="flex gap-2"><Link href="/bring" className="lift-sm flex h-10 items-center rounded-full bg-white px-4 text-[15px] font-semibold no-underline" style={{ color: C.ink, boxShadow: SHADOW }}>+ Add a listing from elsewhere</Link>
+          <Link href="/map" className="lift-sm flex h-10 items-center rounded-full bg-white px-4 text-[15px] font-semibold no-underline" style={{ color: C.ink, boxShadow: SHADOW }}>See on map</Link></div></div>
         <div className="flex flex-wrap gap-2">
           {NICHES.map(([k, l]) => { const on = niche.includes(k); return <button key={k} onClick={() => setNiche(n => on ? n.filter(x => x !== k) : [...n, k])} aria-pressed={on} className="lift-sm h-10 cursor-pointer rounded-full border-0 px-4 text-[15px] font-semibold" style={{ background: on ? C.indigo : '#FFFFFF', color: on ? '#FFFFFF' : C.ink, boxShadow: SHADOW }}>{on ? '− ' : '+ '}{l}</button>; })}
         </div>
@@ -191,9 +170,21 @@ export default function ComparePage() {
                 <span className="text-[17px] font-semibold" style={{ color: C.ink }}>{busy ? 'Re-ranking…' : 'Show me the next best match'}</span>
                 <span className="text-[15px]" style={{ color: '#3F35E0' }}>{bench[0] ? `${bench[0].short} · ${money(bench[0].total)} / mo · ${Math.max(0, bench.length - 1)} more waiting` : 'You’ve seen every match — try Bring any listing'}</span>
               </button>
-              <Link href="/bring" className="lift flex flex-col gap-1 rounded-[18px] p-4 no-underline" style={{ background: '#F5F2EB' }}>
+              {brought && !cards.some(c => c.id === 'BYO') && (
+                <button onClick={() => { const ids = cards.map(c => c.id); ids[sheet.pos] = 'BYO'; setState({ shown: ids, seen: [...seen.filter(x => x !== 'BYO'), tgt.id] }); setSheet(null); setToast('Swapped in your listing'); }} className="lift flex cursor-pointer flex-col gap-1 rounded-[18px] border-0 p-4 text-left" style={{ background: '#E9F8DA' }}>
+                  <span className="text-[17px] font-semibold" style={{ color: C.ink }}>Use the listing I brought</span>
+                  <span className="text-[15px]" style={{ color: C.good }}>{brought.label ?? 'Your listing'} · priced the same way</span>
+                </button>
+              )}
+              {cards.length === 3 && (
+                <button onClick={() => { setState({ slots: 2, shown: cards.map(c => c.id).filter(id => id !== tgt.id), seen: [...seen, tgt.id] }); setSheet(null); setToast(`Removed ${tgt.short} — comparing 2`); }} className="lift flex cursor-pointer flex-col gap-1 rounded-[18px] border-0 bg-white p-4 text-left" style={{ boxShadow: 'inset 0 0 0 1px rgba(29,31,26,.12)' }}>
+                  <span className="text-[17px] font-semibold" style={{ color: C.ink }}>Just remove it</span>
+                  <span className="text-[15px]" style={{ color: C.muted }}>Compare the other 2 side by side</span>
+                </button>
+              )}
+              <Link href={`/bring?slot=${sheet.pos}`} className="lift flex flex-col gap-1 rounded-[18px] p-4 no-underline" style={{ background: '#F5F2EB' }}>
                 <span className="text-[17px] font-semibold" style={{ color: C.ink }}>Compare a place I found elsewhere</span>
-                <span className="text-[15px]" style={{ color: C.muted }}>Paste text or type 4 fields from anywhere</span>
+                <span className="text-[15px]" style={{ color: C.muted }}>Paste text, a screenshot, or 4 fields — it takes this spot</span>
               </Link>
             </>)}
             {sheet.kind === 'message' && (<>
