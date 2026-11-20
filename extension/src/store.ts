@@ -11,9 +11,11 @@ export interface SavedPlace {
   fields: (Pick<Extracted, 'key' | 'value' | 'status'> & { evidence: string | null; source?: Source })[];
   coord?: [number, number];
   label: string;                    // short name shown in the compare column
+  scannedFrom?: string;             // results page this was found on (multi-page scan)
 }
 export interface Store { profile?: Profile; name?: string; site?: string; connectedAt?: string; saved: SavedPlace[]; installId: string; showPill?: boolean }
 
+export const MAX_SAVED = 200;
 export const DEFAULT_SITE = 'https://hack-the-lease-kappa.vercel.app';
 
 export async function load(): Promise<Store> {
@@ -26,7 +28,7 @@ export const save = (patch: Partial<Store>) => chrome.storage.local.set(patch);
 
 export async function savePlace(p: SavedPlace) {
   const s = await load();
-  const saved = [p, ...s.saved.filter(x => x.id !== p.id)].slice(0, 50);
+  const saved = [p, ...s.saved.filter(x => x.id !== p.id)].slice(0, MAX_SAVED);
   await save({ saved });
   return saved;
 }

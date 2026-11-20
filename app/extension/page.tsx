@@ -23,7 +23,7 @@ export default function ExtensionPage() {
       </div>
       <div className="flex flex-col gap-2 rounded-[18px] bg-white p-6 text-[16px] leading-[1.6]" style={card}>
         <span className="text-[17px] font-semibold">What it can and can’t see</span>
-        <p className="m-0">It reads only the page you’re on, only when you click. Saved places stay on your device. <Link href="/privacy">Read the privacy page</Link>.</p>
+        <p className="m-0">It reads the page you’re on when you click. On a search-results page you can ask it to scan up to 20 listings: it opens them one at a time, a few seconds apart, in your own browser. If a site asks you to prove you’re human, it stops and asks you to do it — it never solves the check for you. Saved places stay on your device and are ranked with the same engine as this website. <Link href="/privacy">Read the privacy page</Link>.</p>
       </div>
     </Page>
   );

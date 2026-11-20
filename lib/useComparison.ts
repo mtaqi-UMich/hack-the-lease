@@ -20,10 +20,17 @@ export function useComparison() {
   // /compare?add=X-… (from the extension's "Save & compare"): put that place into a column once
   useEffect(() => {
     if (!saved || typeof window === 'undefined') return;
-    const add = new URLSearchParams(window.location.search).get('add');
-    if (!add || !saved.some(p => p.id === add)) return;
+    // ?add=X-a or ?add=X-a,X-b,X-c ("Compare my best 3" from the extension)
+    const adds = (new URLSearchParams(window.location.search).get('add') ?? '').split(',').filter(id => saved.some(p => p.id === id));
+    if (!adds.length) return;
     window.history.replaceState(null, '', window.location.pathname);
-    setState(s => { const n = s.slots ?? 3; const cur = s.shown.filter(id => id !== add).slice(0, n); if (cur.length >= n) cur[n - 1] = add; else cur.push(add); return { shown: cur, seen: s.seen.filter(x => x !== add) }; });
+    setState(s => {
+      const n = s.slots ?? 3;
+      if (adds.length >= 2) { const shown = adds.slice(0, n); return { shown, slots: Math.max(2, shown.length) as 2 | 3, seen: s.seen.filter(x => !shown.includes(x)) }; }
+      const add = adds[0];
+      const cur = s.shown.filter(id => id !== add).slice(0, n); if (cur.length >= n) cur[n - 1] = add; else cur.push(add);
+      return { shown: cur, seen: s.seen.filter(x => x !== add) };
+    });
   }, [saved]);
 
   useEffect(() => {

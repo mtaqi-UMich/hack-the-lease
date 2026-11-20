@@ -8,6 +8,8 @@ export interface PageSnapshot {
   embedded: string[];             // other inline JSON blobs that look like listing data (Apartments.com etc.)
   meta: Record<string, string>;   // og:/twitter:/description/product: tags
   text: string;                   // visible text of the main content
+  links?: string[];               // hrefs on the page (for scanning a results page)
+  captcha?: string[];             // bot-check widgets present (iframes/containers), detected by selector only
 }
 
 export function snapshotPage(): PageSnapshot {
@@ -28,5 +30,9 @@ export function snapshotPage(): PageSnapshot {
   const main = document.querySelector('main, [role="main"], article') as HTMLElement | null;
   const body = document.body as HTMLElement;
   const text = ((main && main.innerText.length > 400 ? main.innerText : body.innerText) || '').slice(0, 40000);
-  return { url: location.href, host: location.hostname.replace(/^www\./, ''), title: document.title.slice(0, 200), jsonld, nextData, embedded, meta, text };
+  const links = Array.from(document.querySelectorAll('a[href]')).map(a => (a as HTMLAnchorElement).href).filter(h => /^https?:/.test(h)).slice(0, 600);
+  const captcha: string[] = [];
+  for (const sel of ['#px-captcha', 'iframe[src*="captcha"]', 'iframe[src*="challenges.cloudflare.com"]', 'iframe[src*="hcaptcha"]', 'iframe[src*="recaptcha"]', '#challenge-form', '#cf-challenge-running', '.g-recaptcha', '.h-captcha'])
+    if (document.querySelector(sel)) captcha.push(sel);
+  return { url: location.href, host: location.hostname.replace(/^www\./, ''), title: document.title.slice(0, 200), jsonld, nextData, embedded, meta, text, links, captcha };
 }

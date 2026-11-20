@@ -4,6 +4,7 @@ The team's agreed decisions. Newest at the top. If you change a decision, don't 
 
 Format: `- YYYY-MM-DD — **Decision** — why — (who)`
 
+- 2026-11-20 — **Extension scans results pages and pauses for bot checks** — student presses Scan (5/10/20); listings open one at a time in background tabs 2.5–5 s apart; on a CAPTCHA/“press & hold” page the scan pauses, brings the tab forward and the student completes it (we never solve or bypass it); every place is saved on-device (up to 200) and ranked with the website engine; “Compare my best 3” opens /compare?add=a,b,c — (Ikmal, Claude build)
 - 2026-11-20 — **Pitch leads with hidden fees + comparing + regret** — renter-pain Pareto (docs/RESEARCH.md): hidden fees and "comparing is 2× harder than finding" are the pains we solve fully; regret data (noise/safety) justifies the Watch-out, Quiet and Night-walk rows; maintenance is honestly roadmap. Deck + analysis: docs/PITCH.md, docs/ANALYSIS.md, /analysis — (Claude build, from team research)
 - 2026-11-20 — **Live app auto-deploys from GitHub main to Vercel** (https://hack-the-lease-kappa.vercel.app); PowerShell blocks `npx`, use `npx.cmd`/`npm.cmd` on Windows — (Claude build)
 - 2026-11-20 — **Stop rule: up to 5 required screens, early stop at P(true best in top 3) ≥ τ = 0.95** — KICKOFF says "exactly 5 or stop early"; PRD 1.4 says "exactly 5"; prototype default τ was 0.9. Early stop keeps clicks low and the meter is calibrated (see /evidence) — (Claude build, from KICKOFF)

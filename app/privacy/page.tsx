@@ -15,7 +15,8 @@ export default function Privacy() {
         <p className="m-0">Your onboarding answers (your “priorities”) are kept in your own browser. We use them to rank Example listings each time you load a page; we don’t keep an account or a copy on our server.</p>
 
         <H>The browser extension</H>
-        <p className="m-0"><b>What it reads.</b> Only the page you are on, and only after you click the Hack the Lease button (or the “Add to Hack the Lease” button on Zillow or Apartments.com, if you turned it on). It never opens pages, clicks, scrolls, or reads other tabs.</p>
+        <p className="m-0"><b>What it reads.</b> Only the page you are on, and only after you click the Hack the Lease button (or the “Add to Hack the Lease” button on Zillow or Apartments.com, if you turned it on). It never clicks, scrolls, or reads your other tabs.</p>
+        <p className="m-0"><b>Scanning a results page.</b> Only when you press <i>Scan</i> on a search-results page: it opens up to the number of listings you chose (5, 10 or 20), one at a time in a background tab, a few seconds apart, reads each the same way, then closes it. If a site shows a “prove you’re human” check, the scan pauses, brings that tab to the front and waits for you to complete it. We never solve, skip or get around these checks. Some sites’ terms limit automated browsing; scanning is optional and you can stop it at any time.</p>
         <p className="m-0"><b>What it keeps.</b> Facts about a listing — rent, bedrooms, fees, utilities, laundry, address, lease dates — plus the sentence each fact came from and the page address. No photos, no full descriptions. Everything is stored on your device (Chrome’s local extension storage). “Delete all my saved places” removes it; “Export JSON” gives you a copy.</p>
         <p className="m-0"><b>What leaves your device.</b></p>
         <ul className="m-0 flex flex-col gap-1 pl-6">
