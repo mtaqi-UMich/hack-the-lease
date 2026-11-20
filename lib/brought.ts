@@ -6,12 +6,19 @@
  *   in the same area, because we never visit the source site.
  * Private to the student: never added to LISTINGS, never ranked for anyone else. */
 import { LISTINGS } from './data';
+import { HOODS } from './engine';
 import { geocode, type Extracted, type FieldKey } from './extract';
 import type { Fee, Listing } from './types';
 import { inLyftZone } from './zones';
 
 export const BROUGHT_ID = 'BYO';
-export interface Brought { fields: Pick<Extracted, 'key' | 'value' | 'status'>[]; hood?: string; label?: string }
+export interface Brought {
+  fields: Pick<Extracted, 'key' | 'value' | 'status'>[]; hood?: string; label?: string;
+  /** geocoded on the student's device (browser extension); when present it beats the street-name guess */
+  coord?: [number, number]; sourceHost?: string;
+}
+/** ids for outside places: "BYO" (pasted on /bring) or "X-…" (saved by the browser extension) */
+export const isOutside = (id: string) => id === BROUGHT_ID || id.startsWith('X-');
 
 const dist2 = (a: [number, number], b: [number, number]) => (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2;
 
@@ -21,8 +28,9 @@ export function broughtToListing(b: Brought): Listing | null {
   const beds = get('beds') == null ? null : Number(get('beds'));
   if (!rent || !beds) return null;
   const address = (get('address') as string | null) ?? null;
-  const geo = geocode(address, b.hood ?? '');
-  const tpl = LISTINGS.filter(l => l.hood === geo.hood).sort((x, y) => dist2(x.coord, geo.coord) - dist2(y.coord, geo.coord))[0]
+  const near = b.coord ? HOODS.map(h => ({ h, d: dist2(h.c, b.coord!) })).sort((x, y) => x.d - y.d)[0] : null;
+  const geo = b.coord ? { coord: b.coord, hood: near && near.d < 0.0004 ? near.h.name : 'Ann Arbor area' } : geocode(address, b.hood ?? '');
+  const tpl = (b.coord ? [] : LISTINGS.filter(l => l.hood === geo.hood)).sort((x, y) => dist2(x.coord, geo.coord) - dist2(y.coord, geo.coord))[0]
     ?? [...LISTINGS].sort((x, y) => dist2(x.coord, geo.coord) - dist2(y.coord, geo.coord))[0];
 
   const basis = get('price_basis') as Listing['price_basis'];
@@ -37,7 +45,7 @@ export function broughtToListing(b: Brought): Listing | null {
 
   return {
     ...tpl,
-    id: BROUGHT_ID, name: address ?? 'Your listing', short, hood: geo.hood,
+    id: BROUGHT_ID, name: address ?? 'Your listing', short, hood: geo.hood, coord: geo.coord, lat: geo.coord[0], lng: geo.coord[1],
     landlord_id: 'byo', building_id: 'BYO', source: 'bring_your_own', verified_at: null,
     address: address ?? 'Address not given', beds, baths: Number(get('baths') ?? 1), sqft: Number(get('sqft') ?? 0),
     rent: unitTotal, inUnit: laundry === 'in_unit', parking: yes('parking'), ac: yes('ac'), pets: yes('pets'), quality: 0.5,

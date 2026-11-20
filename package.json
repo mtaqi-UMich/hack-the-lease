@@ -12,7 +12,9 @@
     "gen:data": "tsx scripts/gen-listings.ts",
     "prompt": "node scripts/build-prompt.mjs",
     "prompt:watch": "node --watch-path=context scripts/build-prompt.mjs",
-    "analysis": "tsx scripts/analysis.ts"
+    "analysis": "tsx scripts/analysis.ts",
+    "ext:build": "node extension/build.mjs && tsc -p extension/tsconfig.json",
+    "ext:dev": "node extension/build.mjs --watch"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.11.0",
@@ -24,6 +26,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.5",
+    "@types/chrome": "^0.0.287",
     "@types/leaflet": "^1.9.22",
     "@types/node": "^26.6.6",
     "@types/react": "^19.3.0",

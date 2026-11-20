@@ -7,6 +7,7 @@ import { WhatIf } from '@/components/WhatIf';
 import { PhotoCarousel } from '@/components/Photos';
 import { CompareHeader, PrioritiesSheet } from '@/components/CompareHeader';
 import { useComparison } from '@/lib/useComparison';
+import { isOutside } from '@/lib/brought';
 import type { CardOut } from '@/lib/compare';
 import { lineFor } from '@/lib/profileText';
 
@@ -19,7 +20,7 @@ export interface CompareResp {
 
 function Results() {
   const sp = useSearchParams();
-  const { r, cards } = useComparison();
+  const { r, cards, outsideTag } = useComparison();
   const [scoreOpen, setScoreOpen] = useState(false);
   const [card, setCard] = useState(sp.get('score') === '1');
 
@@ -32,14 +33,14 @@ function Results() {
       <div className="grid gap-5" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))' }}>
         {(r ? cards : [null, null, null]).map((c, i) => c ? (
           <Link key={c.id} href="/compare" className="lift flex flex-col overflow-hidden rounded-[18px] bg-white no-underline" style={{ boxShadow: SHADOW, color: C.ink }}>
-            <PhotoCarousel id={c.id} short={c.short} stock={c.id !== 'BYO'} className="h-48">
-              <span className="absolute left-3 top-3 flex h-7 items-center rounded-full bg-white px-3 text-[13px] font-semibold">{c.id === 'BYO' ? 'Your listing' : i === 0 ? 'Best overall' : c.tag}</span>
-              <span className="absolute right-3 top-3 flex h-7 items-center rounded-full px-3 text-[13px] font-semibold" style={c.id === 'BYO' ? { background: C.lilac, color: '#3F35E0' } : { background: C.cyan, color: '#0A3D44' }}>{c.id === 'BYO' ? 'Found elsewhere' : 'Example'}</span>
+            <PhotoCarousel id={c.id} short={c.short} stock={!isOutside(c.id)} className="h-48">
+              <span className="absolute left-3 top-3 flex h-7 items-center rounded-full bg-white px-3 text-[13px] font-semibold">{isOutside(c.id) ? 'Your listing' : i === 0 ? 'Best overall' : c.tag}</span>
+              <span className="absolute right-3 top-3 flex h-7 items-center rounded-full px-3 text-[13px] font-semibold" style={isOutside(c.id) ? { background: C.lilac, color: '#3F35E0' } : { background: C.cyan, color: '#0A3D44' }}>{isOutside(c.id) ? 'Found elsewhere' : 'Example'}</span>
             </PhotoCarousel>
             <div className="flex flex-col gap-1.5 px-5 pb-5 pt-[18px]">
               <div className="flex items-baseline justify-between gap-2"><span className="text-[17px] font-semibold">{c.short}</span><span className="tnum text-[22px] font-bold">{money(c.total)}</span></div>
               <span className="text-[15px]" style={{ color: C.muted }}>{lineFor(c)}</span>
-              <span className="text-[13px]" style={{ color: C.muted }}>{c.name} · {c.landlord}</span>
+              <span className="text-[13px]" style={{ color: outsideTag(c.id) ? '#3F35E0' : C.muted }}>{outsideTag(c.id) ?? `${c.name} · ${c.landlord}`}</span>
             </div>
           </Link>
         ) : <div key={i} className="h-[300px] animate-pulse rounded-[18px] bg-white" />)}

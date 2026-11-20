@@ -9,10 +9,22 @@ import type { Profile } from '@/lib/session';
 
 export const maxDuration = 20;
 
+// Browser-extension calls ({ text, sourceHost, installId }) use Claude Haiku 5.5 (≈$0.0005 a listing) and a simple
+// per-install limit. The text is never logged or stored; only token counts are printed, and only in development.
+const RATE = { max: 60, windowMs: 3_600_000 };
+const hits = new Map<string, number[]>();
+function limited(id: string) {
+  const now = Date.now(); const h = (hits.get(id) ?? []).filter(t => now - t < RATE.windowMs);
+  if (h.length >= RATE.max) { hits.set(id, h); return true; }
+  h.push(now); hits.set(id, h); return false;
+}
+
 // POST { text?: string, fields?: {address, rent, price_basis, beds}, answers?: {price_basis?, beds?}, profile?, mode?: 'auto'|'rules'|'cache' }
 // Never fetches URLs. Personal data is stripped before any model call. Result is private to this request.
 export async function POST(req: Request) {
   const b = await req.json().catch(() => ({}));
+  const fromExtension = typeof b.sourceHost === 'string' && b.sourceHost.length > 0;
+  if (fromExtension && limited(String(b.installId ?? 'anon'))) return NextResponse.json({ error: 'rate_limited', retry_after_s: 3600 }, { status: 429 });
   const profile: Profile = b.profile ?? {};
   let fields: Extracted[]; let source: 'ai' | 'rules' | 'cache' | 'form'; let text = ''; let redactions = 0; let note = '';
 
@@ -32,14 +44,15 @@ export async function POST(req: Request) {
     if (text.trim() === cache.text.trim()) { fields = cache.fields as Extracted[]; source = 'cache'; }
     else if (process.env.ANTHROPIC_API_KEY && b.mode !== 'rules') {
       try {
-        const client = new Anthropic({ timeout: 8000, maxRetries: 0 });
+        const client = new Anthropic({ timeout: fromExtension ? 12000 : 8000, maxRetries: 0 });
         const response = await client.messages.create({
-          model: 'claude-opus-5-5',
+          model: fromExtension ? 'claude-haiku-5-5' : 'claude-opus-5-5',
           max_tokens: 4000,
           output_config: { effort: 'low', format: { type: 'json_schema', schema: EXTRACT_SCHEMA as unknown as Record<string, unknown> } },
           system: EXTRACT_SYSTEM,
           messages: [{ role: 'user', content: `<listing_text>\n${text}\n</listing_text>` }],
         });
+        if (process.env.NODE_ENV === 'development') console.log(`[extract] ${response.model} in=${response.usage.input_tokens} out=${response.usage.output_tokens}`);
         if (response.stop_reason === 'refusal') throw new Error('refusal');
         const block = response.content.find(c => c.type === 'text');
         const parsed = JSON.parse(block && block.type === 'text' ? block.text : '{}') as { fields: { key: FieldKey; value: Extracted['value']; evidence: string | null }[] };

@@ -9,3 +9,7 @@ reports/*.tmp
 next-env.d.ts
 *.tsbuildinfo
 .claude/launch.json
+
+# browser extension build output
+extension/dist/
+*.pem

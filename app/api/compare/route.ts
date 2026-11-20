@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { buildCards, topAndBench } from '@/lib/compare';
 import { decodeProfile } from '@/lib/wire';
 import { rankAll, type Profile } from '@/lib/session';
-import { broughtToListing, BROUGHT_ID, type Brought } from '@/lib/brought';
+import { broughtToListing, BROUGHT_ID, isOutside, type Brought } from '@/lib/brought';
 import type { Listing } from '@/lib/types';
 
 // GET /api/compare?ids=a,b,c&p=<profile>   (no ids → our top 3 + bench)
@@ -17,7 +17,12 @@ export async function POST(req: Request) {
   const extra = new Map<string, Listing>();
   const l = b.brought ? broughtToListing(b.brought as Brought) : null;
   if (l) extra.set(BROUGHT_ID, l);
-  const ids = (Array.isArray(b.ids) ? b.ids as string[] : []).filter(id => id !== BROUGHT_ID || l);
+  // places saved by the browser extension, sent by the student's own browser for this one request — never stored here
+  for (const [id, br] of Object.entries((b.outside ?? {}) as Record<string, Brought>)) {
+    if (!id.startsWith('X-')) continue;
+    const x = broughtToListing(br); if (x) extra.set(id, { ...x, id, name: x.name, short: br.label ?? x.short });
+  }
+  const ids = (Array.isArray(b.ids) ? b.ids as string[] : []).filter(id => !isOutside(id) || extra.has(id));
   return respond(decodeProfile(b.p ?? null), ids.length ? ids.join(',') : null, extra);
 }
 

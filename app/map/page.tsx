@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { C, Page, SHADOW, money } from '@/components/ui';
 import { useComparison } from '@/lib/useComparison';
+import { isOutside } from '@/lib/brought';
 import { PhotoCarousel } from '@/components/Photos';
 
 const MapView = dynamic(() => import('@/components/MapView'), { ssr: false, loading: () => <div className="h-full min-h-[420px] w-full animate-pulse rounded-[18px]" style={{ background: '#EDEAE3' }} /> });
@@ -37,9 +38,9 @@ export default function MapPage() {
             {cards.map((c, i) => <button key={c.id} onClick={() => setSel(i)} aria-pressed={sel === i} className="h-9 min-w-0 cursor-pointer truncate rounded-full border-0 px-2 text-[14px] font-semibold" style={{ background: sel === i ? '#FFFFFF' : 'transparent', color: sel === i ? C.ink : C.muted }}>{c.short}</button>)}
           </div>
           {h ? (<>
-            <PhotoCarousel key={h.id} id={h.id} short={h.short} stock={h.id !== 'BYO'} rounded={12} className="h-[190px]">
+            <PhotoCarousel key={h.id} id={h.id} short={h.short} stock={!isOutside(h.id)} rounded={12} className="h-[190px]">
               <span className="absolute left-2 top-2 flex h-[26px] items-center rounded-full bg-white px-2.5 text-[13px] font-semibold">{h.tag}</span>
-              <span className="absolute bottom-2 left-2 flex h-[22px] items-center rounded-full px-2 text-[12px] font-semibold" style={h.id === 'BYO' ? { background: C.lilac, color: '#3F35E0' } : { background: C.cyan, color: '#0A3D44' }}>{h.id === 'BYO' ? 'Your listing' : 'Example'}</span>
+              <span className="absolute bottom-2 left-2 flex h-[22px] items-center rounded-full px-2 text-[12px] font-semibold" style={isOutside(h.id) ? { background: C.lilac, color: '#3F35E0' } : { background: C.cyan, color: '#0A3D44' }}>{isOutside(h.id) ? 'Your listing' : 'Example'}</span>
             </PhotoCarousel>
             <div className="flex items-baseline justify-between gap-2">
               <span className="text-[20px] font-bold tracking-[-0.02em]">{h.short}</span>
@@ -51,7 +52,7 @@ export default function MapPage() {
             <div className="rounded-[12px] px-3.5 py-3 text-[15px]" style={{ background: '#F5F2EB' }}><span className="font-semibold" style={{ color: C.bad }}>Watch out: </span>{h.regret}</div>
             <div className="mt-auto grid grid-cols-2 gap-2">
               <Link href="/compare" className="lift-sm flex h-12 items-center justify-center rounded-full text-[15px] font-semibold no-underline" style={{ background: C.soft, color: C.ink }}>Compare</Link>
-              <Link href={h.id === 'BYO' ? '/compare' : `/apply?id=${h.id}`} className="lift-sm flex h-12 items-center justify-center rounded-full text-[15px] font-semibold text-white no-underline" style={{ background: C.indigo }}>Apply</Link>
+              <Link href={isOutside(h.id) ? '/compare' : `/apply?id=${h.id}`} className="lift-sm flex h-12 items-center justify-center rounded-full text-[15px] font-semibold text-white no-underline" style={{ background: C.indigo }}>Apply</Link>
             </div>
           </>) : <div className="h-64 animate-pulse rounded-[12px]" style={{ background: C.soft }} />}
         </aside>

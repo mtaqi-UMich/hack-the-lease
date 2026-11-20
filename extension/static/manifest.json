@@ -1,0 +1,51 @@
+{
+  "manifest_version": 3,
+  "name": "Hack the Lease",
+  "version": "0.1.0",
+  "description": "Turn the rental listing you're viewing into a scored, private comparison against your Hack the Lease priorities.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxPQ8l2esiSu4iK2nfJf9WxWvxx2tfNmZEXMlZ2LUu/3U8MjfFgw1jnHeurQN6KPErCkkf/bS5J9njY7kvS5+GBrOhxDyKXa1FdPo/LV/qMlr7CwwvVZZkjmYG4YF06LayIoEl+l4+zRVGssMYk1bVUgz0KhrPsjqZyxt1omsVBlAeSeLhLM3Y4LNEb/7wz8zCnaWqg21W08CZ8W56Yc7iqWz9K7Gwt+RR7f6BV6Pvh0ghz1zGdeCz+c60FZjADu4UIskrFKxbpOT97Y4zfwOiJX5Etv+RD8/oW1Nsm7Php6pKQZgkLP9vChCGrAZQP5uQilLWOWMM5SZeApHNErhIQIDAQAB",
+  "icons": {
+    "16": "icon16.png",
+    "32": "icon32.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
+  "action": {
+    "default_title": "Read this listing with Hack the Lease",
+    "default_icon": {
+      "16": "icon16.png",
+      "32": "icon32.png"
+    }
+  },
+  "side_panel": {
+    "default_path": "panel.html"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    "sidePanel"
+  ],
+  "host_permissions": [
+    "https://hack-the-lease-kappa.vercel.app/*",
+    "http://localhost:3000/*",
+    "https://nominatim.openstreetmap.org/*"
+  ],
+  "optional_host_permissions": [
+    "https://www.zillow.com/*",
+    "https://www.apartments.com/*",
+    "https://*/*",
+    "http://*/*"
+  ],
+  "externally_connectable": {
+    "matches": [
+      "https://hack-the-lease-kappa.vercel.app/*",
+      "http://localhost:3000/*"
+    ]
+  },
+  "minimum_chrome_version": "116"
+}

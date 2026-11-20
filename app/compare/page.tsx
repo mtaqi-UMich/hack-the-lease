@@ -6,6 +6,7 @@ import { WhatIf } from '@/components/WhatIf';
 import { PhotoCarousel } from '@/components/Photos';
 import { setState } from '@/lib/store';
 import { useComparison } from '@/lib/useComparison';
+import { isOutside } from '@/lib/brought';
 import { CompareHeader } from '@/components/CompareHeader';
 import type { CardOut, Cell, XReason } from '@/lib/compare';
 
@@ -47,7 +48,7 @@ function buildRows(cards: CardOut[], niche: string[]): Row[] {
 }
 
 export default function ComparePage() {
-  const { r, cards, bench, profile, seen, brought } = useComparison();
+  const { r, cards, bench, profile, seen, brought, outsideTag } = useComparison();
   const [niche, setNiche] = useState<string[]>([]);
   const [sheet, setSheet] = useState<null | { kind: 'replace' | 'message' | 'tour'; pos: number }>(null);
   const [reason, setReason] = useState<XReason>('skip');
@@ -63,8 +64,8 @@ export default function ComparePage() {
     setBusy(true);
     try {
       const ids = cards.map(c => c.id);
-      if (tgt.id === 'BYO') { setState({ shown: ids.filter(id => id !== 'BYO'), seen: [...seen, 'BYO'] }); setToast('Removed your listing — swapped in your next best match'); setSheet(null); return; }
-      const ours = ids.filter(id => id !== 'BYO');
+      if (isOutside(tgt.id)) { setState({ shown: ids.filter(id => id !== tgt.id), seen: [...seen, tgt.id] }); setToast(`Removed ${tgt.short} — swapped in your next best match`); setSheet(null); return; }
+      const ours = ids.filter(id => !isOutside(id));
       const out = await api<{ shown: string[]; cards: CardOut[]; bench: string[]; replacement: string | null; why: string; note: string; widened: string; profile: typeof profile }>('/api/bench/next', { profile, shown: ours, removed_id: tgt.id, reason, seen });
       const nextShown = ids.map(id => id === tgt.id ? out.replacement : id).filter(Boolean) as string[];
       setState({ profile: out.profile, shown: nextShown, seen: [...seen, tgt.id] });
@@ -101,15 +102,15 @@ export default function ComparePage() {
             <div className="sticky left-0 z-[1] bg-white" />
             {cards.map((c, pos) => (
               <div key={c.id} className="flex flex-col gap-2.5 px-2.5 pb-3 pt-3.5">
-                <PhotoCarousel id={c.id} short={c.short} stock={c.id !== 'BYO'} rounded={12} className="h-[150px]">
-                  <span className="absolute left-2 top-2 flex h-[26px] items-center rounded-full bg-white px-2.5 text-[13px] font-semibold">{c.id === 'BYO' ? 'Found elsewhere' : c.tag}</span>
+                <PhotoCarousel id={c.id} short={c.short} stock={!isOutside(c.id)} rounded={12} className="h-[150px]">
+                  <span className="absolute left-2 top-2 flex h-[26px] items-center rounded-full bg-white px-2.5 text-[13px] font-semibold">{isOutside(c.id) ? 'Found elsewhere' : c.tag}</span>
                   <button onClick={() => { setReason('skip'); setSheet({ kind: 'replace', pos }); }} aria-label={`Replace ${c.short}`} className="lift-sm absolute right-1.5 top-1.5 z-[2] flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border-0 bg-white">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1D1F1A" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
                   </button>
-                  <span className="absolute bottom-2 left-2 flex h-[22px] items-center rounded-full px-2 text-[12px] font-semibold" style={c.id === 'BYO' ? { background: C.lilac, color: '#3F35E0' } : { background: C.cyan, color: '#0A3D44' }}>{c.id === 'BYO' ? 'Your listing' : 'Example'}</span>
+                  <span className="absolute bottom-2 left-2 flex h-[22px] items-center rounded-full px-2 text-[12px] font-semibold" style={isOutside(c.id) ? { background: C.lilac, color: '#3F35E0' } : { background: C.cyan, color: '#0A3D44' }}>{isOutside(c.id) ? 'Your listing' : 'Example'}</span>
                   {c.verified && <span className="absolute bottom-2 right-2 flex h-[22px] items-center rounded-full px-2 text-[12px] font-semibold" style={{ background: C.lime, color: C.forest }}>Verified</span>}
                 </PhotoCarousel>
-                <div className="flex flex-col"><span className="text-[17px] font-semibold">{c.short}</span><span className="text-[13px]" style={{ color: C.muted }}>{c.name} · {c.landlord}</span></div>
+                <div className="flex flex-col"><span className="text-[17px] font-semibold">{c.short}</span><span className="text-[13px]" style={{ color: outsideTag(c.id) ? '#3F35E0' : C.muted }}>{outsideTag(c.id) ?? `${c.name} · ${c.landlord}`}</span></div>
                 <div className="flex items-baseline gap-1"><span className="tnum text-[28px] font-bold tracking-[-0.02em]">{money(c.total)}</span><span className="text-[13px]" style={{ color: C.muted }}>/ person / mo</span></div>
               </div>
             ))}
@@ -128,7 +129,7 @@ export default function ComparePage() {
             <div className="sticky left-0 z-[1] bg-white" />
             {cards.map((c, pos) => (
               <div key={c.id} className="flex flex-col gap-2 px-2.5 pb-4 pt-3.5">
-                {c.id === 'BYO' ? <span className="flex h-11 items-center justify-center rounded-full text-center text-[13px]" style={{ background: C.soft, color: C.muted }}>Apply on the site you found it</span>
+                {isOutside(c.id) ? <span className="flex h-11 items-center justify-center rounded-full text-center text-[13px]" style={{ background: C.soft, color: C.muted }}>Apply on the site you found it</span>
                   : <Link href={`/apply?id=${c.id}`} className="lift-sm flex h-11 items-center justify-center rounded-full text-[15px] font-semibold text-white no-underline" style={{ background: C.indigo }}>Check if I qualify</Link>}
                 <div className="grid grid-cols-2 gap-1.5">
                   <button onClick={() => openMessage(pos)} className="lift-sm h-10 cursor-pointer rounded-full border-0 text-[14px] font-semibold" style={{ background: C.soft }}>Message</button>

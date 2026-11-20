@@ -16,7 +16,7 @@ function Apply() {
   const sp = useSearchParams();
   const { profile, shown, name } = useApp();
   const hydrated = useHydrated();
-  const ours = shown.filter(x => x !== 'BYO');
+  const ours = shown.filter(x => x !== 'BYO' && !x.startsWith('X-'));
   const [picked, setPicked] = useState<string | null>(null);
   const id = picked ?? sp.get('id') ?? ours[0];
   const [stage, setStage] = useState(0);
