@@ -1,5 +1,7 @@
 # Demo script — 5 minutes (Fri Nov 20, 5:00 PM, Ross R0230)
 
+**Live:** https://hack-the-lease-kappa.vercel.app (evidence: `/evidence`, landlord: `/landlord`)
+
 All data on screen is **Example** (synthetic). Say it once at the start; every card is labelled.
 
 **Before you start (2 min before):** open the deployed URL in a fresh private window (or click **Get started**, which resets). Keep a second tab on `/evidence`, a third on `/landlord`. Phone (390 px) works too; desktop shows Compare best.
