@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #FAF8F4;
+  --color-card: #FFFFFF;
+  --color-ink: #1D1F1A;
+  --color-muted: #666666;
+  --color-indigo: #5046F5;
+  --color-forest: #224500;
+  --color-lime: #A8F06B;
+  --color-cyan: #B7F3F7;
+  --color-amber: #9A5B00;
+  --color-amberbg: #FFF4DF;
+  --radius-card: 18px;
+  --radius-box: 24px;
+  --radius-input: 12px;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --shadow-card: 0 0.5px 1px rgba(29,31,26,.06), 0 3px 10px rgba(29,31,26,.08);
+}
+
+html, body { background: #FAF8F4; color: #1D1F1A; }
+body { font-family: var(--font-sans); -webkit-font-smoothing: antialiased; margin: 0; }
+.tnum { font-variant-numeric: tabular-nums; }
